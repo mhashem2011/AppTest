@@ -19,6 +19,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.HiFiBT">
 
+        <!-- Tells Android Auto this is a media app. -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -29,14 +34,15 @@
             </intent-filter>
         </activity>
 
-        <!-- Media3 session service: keeps audio alive, exposes transport controls to
-             the car head unit over AVRCP. -->
+        <!-- Media3 library service: appears in Android Auto's media picker, streams
+             over wireless AA (Wi-Fi/PCM), and keeps audio alive in the background. -->
         <service
             android:name=".playback.PlaybackService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>
-                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
 

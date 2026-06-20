@@ -20,9 +20,27 @@ Because of that, this app does the only things that actually help:
 3. **Parametric EQ** applied in the OS pipeline *before* encoding, tuned to taste
    for the car. Turn it off for a fully transparent path.
 
-> Want quality *above* Bluetooth? That needs a **wired/USB digital connection** —
-> that's the only way to actually beat Android Auto in this car. Bluetooth is the
-> weak link by design.
+> Want quality *above* Bluetooth? Use **wireless Android Auto**. It runs the audio
+> over **Wi-Fi as uncompressed PCM** (Bluetooth is only used for the initial
+> pairing), so it skips the lossy A2DP re-encode entirely and carries Deezer's
+> lossless source intact (CD-class, 16-bit/48kHz). On a BMW this is the best
+> realistic path — BMW supports wireless AA but blocks wired/USB audio.
+
+## How the app maximises wireless Android Auto quality
+
+Over AA the Wi-Fi/PCM transport is lossless and out of our hands, so the app
+improves everything *before* the PCM hand-off — the part we own:
+
+| Lever | Where |
+|---|---|
+| Lossless FLAC fed into the pipeline | `DeezerProvider.resolveFullStream()` (entitlement seam) |
+| EQ **baked into the PCM** so it survives projection | `audio/EqAudioProcessor.kt` (in-pipeline biquads) |
+| Unity digital gain — no bit loss from attenuation | `AudioEngine` sets `player.volume = 1.0` |
+| Generous buffering to absorb Wi-Fi jitter / dropouts | `AudioEngine` `DefaultLoadControl` |
+| Runs as a real AA media app | `PlaybackService : MediaLibraryService` + manifest |
+
+AA tops out at CD-class 16/48 — it perfectly carries Deezer's source but won't
+exceed it. True hi-res (24/192) would need a wired USB DAC, which BMW blocks.
 
 ## Source: Deezer
 
@@ -43,15 +61,15 @@ app/src/main/java/com/hifibt/player/
 ├─ HiFiApp.kt                 # service locator (engine, provider, BT monitor)
 ├─ MainActivity.kt            # Compose entry + BT permission request
 ├─ audio/
-│  ├─ AudioEngine.kt          # ExoPlayer (Media3), FLAC, quality audio attrs
-│  └─ Equalizer10Band.kt      # system EQ on the player's audio session
+│  ├─ AudioEngine.kt          # ExoPlayer (Media3): FLAC, unity gain, big buffers
+│  └─ EqAudioProcessor.kt     # in-pipeline biquad EQ, baked into projected PCM
 ├─ bluetooth/
 │  └─ BluetoothAudioMonitor.kt# reads connected A2DP device + codec, honestly
 ├─ streaming/
 │  ├─ StreamingProvider.kt    # provider-independent interface
 │  └─ DeezerProvider.kt       # Deezer search/metadata + stream-resolution seam
 ├─ playback/
-│  └─ PlaybackService.kt      # Media3 session → AVRCP controls on the head unit
+│  └─ PlaybackService.kt      # MediaLibraryService → Android Auto media app
 └─ ui/                        # Compose screens + ViewModel
 ```
 
@@ -80,6 +98,10 @@ This is a standard Android Studio project (Kotlin, Compose, Media3).
 
 ## Status
 
-Scaffold: search, playback pipeline, EQ, BT codec readout, and Media3 session are
-in place. Full-length lossless awaits entitled Deezer streaming access at the one
-documented seam.
+Scaffold in place: search, the quality-tuned playback pipeline (in-pipeline EQ,
+unity gain, big buffers), BT codec readout, and an Android Auto media service.
+Two follow-ups: (1) full-length lossless at the `resolveFullStream()` seam, and
+(2) populate the AA browse/search tree (`onGetChildren`/`onSearch`) from Deezer.
+
+> Android Auto wiring should be verified on a physical phone + head unit (or the
+> Desktop Head Unit); the codec and projection APIs don't exist on the emulator.

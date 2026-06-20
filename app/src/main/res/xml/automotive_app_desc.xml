@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Declares this app as an Android Auto media app so it shows in the car's
+     media picker and streams over the wireless AA (Wi-Fi/PCM) link. -->
+<automotiveApp>
+    <uses name="media" />
+</automotiveApp>
