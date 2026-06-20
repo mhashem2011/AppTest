@@ -1,0 +1,8 @@
+<resources>
+    <!-- Compose draws the real UI; this base theme just keeps the system happy
+         before the first frame and provides the launch background. -->
+    <style name="Theme.HiFiBT" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#101014</item>
+        <item name="android:windowBackground">#101014</item>
+    </style>
+</resources>
