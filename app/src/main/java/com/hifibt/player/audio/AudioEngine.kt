@@ -10,7 +10,6 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
-import com.hifibt.player.streaming.ResolvedStream
 
 /**
  * The playback core, tuned for the cleanest possible PCM at the hand-off to
@@ -60,9 +59,10 @@ class AudioEngine(context: Context) {
             volume = 1.0f // unity gain: never attenuate in the digital domain
         }
 
-    fun play(stream: ResolvedStream, title: String, artist: String) {
+    /** Play any direct audio URL (radio stream or podcast episode). */
+    fun play(url: String, title: String, artist: String) {
         val item = MediaItem.Builder()
-            .setUri(stream.url)
+            .setUri(url)
             .setMediaMetadata(
                 androidx.media3.common.MediaMetadata.Builder()
                     .setTitle(title)

@@ -14,11 +14,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "0.1.0"
-
-        // Plug your Deezer app credentials in here (see local.properties / README).
-        // They are read at build time so secrets stay out of source control.
-        val deezerAppId = (project.findProperty("DEEZER_APP_ID") ?: "") as String
-        buildConfigField("String", "DEEZER_APP_ID", "\"$deezerAppId\"")
     }
 
     buildTypes {
