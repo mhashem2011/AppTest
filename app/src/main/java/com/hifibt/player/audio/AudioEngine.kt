@@ -4,12 +4,16 @@ import android.content.Context
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * The playback core, tuned for the cleanest possible PCM at the hand-off to
@@ -58,6 +62,22 @@ class AudioEngine(context: Context) {
         .apply {
             volume = 1.0f // unity gain: never attenuate in the digital domain
         }
+
+    private val _playbackError = MutableStateFlow<String?>(null)
+    /** Last playback error message, surfaced to the UI so failures aren't silent. */
+    val playbackError: StateFlow<String?> = _playbackError
+
+    init {
+        player.addListener(object : Player.Listener {
+            override fun onPlayerError(error: PlaybackException) {
+                _playbackError.value = "Playback failed: ${error.errorCodeName} — ${error.message}"
+            }
+
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_READY) _playbackError.value = null
+            }
+        })
+    }
 
     /** Play any direct audio URL (radio stream or podcast episode). */
     fun play(url: String, title: String, artist: String) {

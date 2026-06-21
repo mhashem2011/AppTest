@@ -43,6 +43,9 @@ class PlayerViewModel : ViewModel() {
         viewModelScope.launch {
             app.bluetoothMonitor.status.collect { bt -> _state.value = _state.value.copy(bt = bt) }
         }
+        viewModelScope.launch {
+            engine.playbackError.collect { err -> if (err != null) _state.value = _state.value.copy(error = err) }
+        }
         loadTopStations()
     }
 
