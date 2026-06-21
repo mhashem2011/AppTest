@@ -125,7 +125,7 @@ private fun EqRow(enabled: Boolean, onToggle: (Boolean) -> Unit) {
         Column {
             Text("Equalizer", fontWeight = FontWeight.SemiBold)
             Text(
-                if (enabled) "On — baked into the audio sent to the car" else "Off — bit-perfect path",
+                if (enabled) "On" else "Off — transparent playback",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
