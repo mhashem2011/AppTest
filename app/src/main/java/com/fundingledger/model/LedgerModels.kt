@@ -52,11 +52,11 @@ data class Ledger(
 object SeedData {
     fun ledger(): Ledger = Ledger(
         target = 277_500.0,
-        xauUsd = 4187.0,
-        // The user's last hand-entered price; overrides the xauUsd formula until xauUsd is edited.
-        pricePerGramOverride = 504.67,
+        // Latest hand-entered gold price; SAR/g derives from this (≈ 503.54).
+        xauUsd = 4176.0,
+        pricePerGramOverride = null,
         rows = listOf(
-            Row("cash-riyadh", "Cash Riyadh", Category.GREEN, Mode.FIXED, amount = 33_000.0, inTransfer = true),
+            Row("cash-riyadh", "Cash Riyadh", Category.GREEN, Mode.FIXED, amount = 32_500.0, inTransfer = true),
             Row("cash-sy-usd", "Cash SY (USD-Val)", Category.GREEN, Mode.FIXED, amount = 26_250.0),
             Row("inma-bank", "Inma Bank 001", Category.GREEN, Mode.FIXED, amount = 0.0),
             Row("cash-usd-ksa", "Cash USD KSA (16K USD)", Category.GREEN, Mode.FIXED, amount = 60_000.0, inTransfer = true),
@@ -65,6 +65,9 @@ object SeedData {
             Row("gold-sy", "New Gold SY", Category.RED, Mode.GOLD, grams = 93.3),
             Row("bns-alloc", "Bns Allcation", Category.RED, Mode.FIXED, amount = 45_000.0, inTransfer = true),
             Row("july-slry", "July Slry CSH", Category.RED, Mode.PLUG, inTransfer = true),
+        ),
+        transfers = listOf(
+            TransferEntry("travel-cash", "My travel cash", 37_500.0),
         ),
     )
 }
