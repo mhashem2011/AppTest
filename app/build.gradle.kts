@@ -17,7 +17,23 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        // A fixed, committed debug keystore so every build (local or CI) is signed
+        // with the same key — installed APKs update in place instead of failing
+        // with "App not installed" on a signature mismatch. Debug keystores are
+        // not secret; these are the conventional android/android credentials.
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("debug")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
