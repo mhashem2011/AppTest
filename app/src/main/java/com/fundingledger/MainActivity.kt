@@ -159,8 +159,8 @@ private fun MainScreen(
                     modifier = Modifier.fillMaxSize().padding(padding),
                 ) { page ->
                     when (page) {
-                        0 -> LedgerScreen(viewModel = ledgerViewModel, onShareJson = onShareJson)
-                        else -> GoldScreen(viewModel = goldViewModel)
+                        0 -> GoldScreen(viewModel = goldViewModel)
+                        else -> LedgerScreen(viewModel = ledgerViewModel, onShareJson = onShareJson)
                     }
                 }
             }
@@ -180,8 +180,8 @@ private fun CompactNavBar(selected: Int, onSelect: (Int) -> Unit) {
                     .navigationBarsPadding()
                     .height(46.dp),
             ) {
-                NavCell("📒", "Ledger", selected == 0, Modifier.weight(1f)) { onSelect(0) }
-                NavCell("🥇", "Gold", selected == 1, Modifier.weight(1f)) { onSelect(1) }
+                NavCell("🥇", "Gold", selected == 0, Modifier.weight(1f)) { onSelect(0) }
+                NavCell("📒", "Ledger", selected == 1, Modifier.weight(1f)) { onSelect(1) }
             }
         }
     }
