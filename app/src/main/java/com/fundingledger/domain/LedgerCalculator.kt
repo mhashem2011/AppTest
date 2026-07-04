@@ -20,7 +20,12 @@ data class DerivedLedger(
     val redSubtotal: Double,
     val grandTotal: Double,
     val fundingGap: Double,
+    /** Total that needs to move KSA→SY (sum of inTransfer rows). */
     val transferKsaToSy: Double,
+    /** Sum of transfer tranches already sent. */
+    val transfersMade: Double,
+    /** transferKsaToSy − transfersMade; counts down to 0 as tranches are sent. */
+    val remainingTransfer: Double,
     /** > 0 when non-plug rows alone exceed the target (plug went negative). */
     val overFundedBy: Double,
 )
@@ -55,6 +60,8 @@ object LedgerCalculator {
         }
 
         val grandTotal = computed.sumOf { it.amount }
+        val transferTotal = computed.filter { it.row.inTransfer }.sumOf { it.amount }
+        val transfersMade = ledger.transfers.sumOf { it.amount }
         return DerivedLedger(
             pricePerGram = gramPrice,
             rows = computed,
@@ -62,7 +69,9 @@ object LedgerCalculator {
             redSubtotal = computed.filter { it.row.category == Category.RED }.sumOf { it.amount },
             grandTotal = grandTotal,
             fundingGap = ledger.target - grandTotal,
-            transferKsaToSy = computed.filter { it.row.inTransfer }.sumOf { it.amount },
+            transferKsaToSy = transferTotal,
+            transfersMade = transfersMade,
+            remainingTransfer = transferTotal - transfersMade,
             overFundedBy = if (hasPlug && plugAmount < 0) -plugAmount else 0.0,
         )
     }

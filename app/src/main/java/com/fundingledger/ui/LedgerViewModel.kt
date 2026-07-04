@@ -12,6 +12,7 @@ import com.fundingledger.model.Ledger
 import com.fundingledger.model.Mode
 import com.fundingledger.model.Row
 import com.fundingledger.model.SeedData
+import com.fundingledger.model.TransferEntry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -101,6 +102,25 @@ class LedgerViewModel(private val repository: LedgerRepository) : ViewModel() {
     }
 
     fun deleteRow(id: String) = update { it.copy(rows = it.rows.filterNot { row -> row.id == id }) }
+
+    fun addTransfer(label: String, amount: Double) = update { ledger ->
+        val entry = TransferEntry(
+            id = UUID.randomUUID().toString(),
+            label = label.ifBlank { "Transfer" },
+            amount = amount,
+        )
+        ledger.copy(transfers = ledger.transfers + entry)
+    }
+
+    private fun updateTransfer(id: String, transform: (TransferEntry) -> TransferEntry) =
+        update { it.copy(transfers = it.transfers.map { t -> if (t.id == id) transform(t) else t }) }
+
+    fun setTransferAmount(id: String, amount: Double) = updateTransfer(id) { it.copy(amount = amount) }
+
+    fun setTransferLabel(id: String, label: String) = updateTransfer(id) { it.copy(label = label) }
+
+    fun deleteTransfer(id: String) =
+        update { it.copy(transfers = it.transfers.filterNot { t -> t.id == id }) }
 
     fun moveRow(id: String, up: Boolean) = update { ledger ->
         val rows = ledger.rows.toMutableList()

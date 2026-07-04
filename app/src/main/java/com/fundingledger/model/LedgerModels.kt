@@ -29,12 +29,24 @@ data class Row(
  * pricePerGramOverride, when set, wins over the xauUsd-based formula;
  * editing xauUsd clears it so the formula takes over again.
  */
+/**
+ * A single KSA→SY transfer that has already been sent. These count down the
+ * remaining transfer: remaining = (sum of inTransfer rows) − (sum of sent entries).
+ */
+@Serializable
+data class TransferEntry(
+    val id: String,
+    val label: String,
+    val amount: Double = 0.0,
+)
+
 @Serializable
 data class Ledger(
     val target: Double,
     val xauUsd: Double,
     val pricePerGramOverride: Double? = null,
     val rows: List<Row>,
+    val transfers: List<TransferEntry> = emptyList(),
 )
 
 object SeedData {

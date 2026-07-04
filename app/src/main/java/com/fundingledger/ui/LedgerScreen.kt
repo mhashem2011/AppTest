@@ -94,6 +94,8 @@ fun LedgerScreen(viewModel: LedgerViewModel, onShareJson: (String) -> Unit) {
 
     var optionsFor by remember { mutableStateOf<String?>(null) }
     var showAddDialog by remember { mutableStateOf(false) }
+    var editTransferFor by remember { mutableStateOf<String?>(null) }
+    var showAddTransfer by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -153,6 +155,24 @@ fun LedgerScreen(viewModel: LedgerViewModel, onShareJson: (String) -> Unit) {
             item {
                 BandRow("⇄ Transfer KSA → SY", derived.transferKsaToSy, null, LedgerColors.TransferYellow)
             }
+            items(ledger.transfers.size, key = { ledger.transfers[it].id }) { i ->
+                val entry = ledger.transfers[i]
+                TransferLine(
+                    label = entry.label,
+                    amount = entry.amount,
+                    onAmount = { viewModel.setTransferAmount(entry.id, it) },
+                    onLongPress = { editTransferFor = entry.id },
+                )
+            }
+            item { AddTransferLine(onClick = { showAddTransfer = true }) }
+            item {
+                BandRow(
+                    "Remaining Transfer",
+                    derived.remainingTransfer,
+                    null,
+                    LedgerColors.TransferYellow,
+                )
+            }
             item { Spacer(Modifier.height(12.dp)) }
             item { SummaryCard(ledger, derived) }
         }
@@ -162,6 +182,14 @@ fun LedgerScreen(viewModel: LedgerViewModel, onShareJson: (String) -> Unit) {
         ledger.rows.firstOrNull { it.id == id }?.let { row ->
             RowOptionsDialog(row = row, viewModel = viewModel, onDismiss = { optionsFor = null })
         } ?: run { optionsFor = null }
+    }
+    editTransferFor?.let { id ->
+        ledger.transfers.firstOrNull { it.id == id }?.let { entry ->
+            TransferOptionsDialog(entry = entry, viewModel = viewModel, onDismiss = { editTransferFor = null })
+        } ?: run { editTransferFor = null }
+    }
+    if (showAddTransfer) {
+        AddTransferDialog(viewModel = viewModel, onDismiss = { showAddTransfer = false })
     }
     if (showAddDialog) {
         AddRowDialog(viewModel = viewModel, onDismiss = { showAddDialog = false })
@@ -324,6 +352,117 @@ private fun BandRow(label: String, amount: Double, percent: Double?, background:
         )
     }
     HorizontalDivider(color = Color.White.copy(alpha = 0.6f))
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun TransferLine(
+    label: String,
+    amount: Double,
+    onAmount: (Double) -> Unit,
+    onLongPress: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(LedgerColors.TransferYellow.copy(alpha = 0.4f))
+            .combinedClickable(onClick = {}, onLongClick = onLongPress)
+            .padding(start = 24.dp, end = 10.dp, top = 7.dp, bottom = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("• $label", Modifier.weight(1f), fontSize = 13.sp, color = LedgerColors.Ink)
+        Box(Modifier.width(AMOUNT_COL_DP.dp), contentAlignment = Alignment.CenterEnd) {
+            EditableNumber(
+                value = amount,
+                format = { "− " + formatAmount(it) },
+                textStyle = TextStyle(fontSize = 13.sp, color = LedgerColors.Ink, textAlign = TextAlign.End),
+                onCommit = onAmount,
+            )
+        }
+        Spacer(Modifier.width(PERCENT_COL_DP.dp))
+    }
+    HorizontalDivider(color = Color.White.copy(alpha = 0.6f))
+}
+
+@Composable
+private fun AddTransferLine(onClick: () -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .background(LedgerColors.TransferYellow.copy(alpha = 0.4f))
+            .clickable(onClick = onClick)
+            .padding(start = 24.dp, end = 10.dp, top = 7.dp, bottom = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Filled.Add, contentDescription = null, tint = LedgerColors.Ink)
+        Spacer(Modifier.width(6.dp))
+        Text("Add transfer line", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = LedgerColors.Ink)
+    }
+    HorizontalDivider(color = Color.White.copy(alpha = 0.6f))
+}
+
+@Composable
+private fun TransferOptionsDialog(
+    entry: com.fundingledger.model.TransferEntry,
+    viewModel: LedgerViewModel,
+    onDismiss: () -> Unit,
+) {
+    var label by remember { mutableStateOf(entry.label) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit transfer line") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = label,
+                    onValueChange = { label = it },
+                    label = { Text("Label") },
+                    singleLine = true,
+                )
+                TextButton(onClick = { viewModel.deleteTransfer(entry.id); onDismiss() }) {
+                    Text("Delete", color = LedgerColors.NegativeRed)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { viewModel.setTransferLabel(entry.id, label); onDismiss() }) { Text("Done") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
+}
+
+@Composable
+private fun AddTransferDialog(viewModel: LedgerViewModel, onDismiss: () -> Unit) {
+    var label by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Add transfer line") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = label,
+                    onValueChange = { label = it },
+                    label = { Text("Label (e.g. Bank 1, courier)") },
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    label = { Text("Amount sent (SAR)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                viewModel.addTransfer(label, amount.trim().replace(",", "").toDoubleOrNull() ?: 0.0)
+                onDismiss()
+            }) { Text("Add") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }
 
 @Composable

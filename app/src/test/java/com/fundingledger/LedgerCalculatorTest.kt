@@ -56,6 +56,28 @@ class LedgerCalculatorTest {
     }
 
     @Test
+    fun `remaining transfer defaults to the full transfer total`() {
+        assertEquals(204_164.289, derived.transferKsaToSy, 1e-3)
+        assertEquals(0.0, derived.transfersMade, 1e-6)
+        assertEquals(derived.transferKsaToSy, derived.remainingTransfer, 1e-6)
+    }
+
+    @Test
+    fun `sent transfer tranches count down the remaining transfer`() {
+        val edited = seed.copy(
+            transfers = listOf(
+                com.fundingledger.model.TransferEntry("t1", "Bank 1", 50_000.0),
+                com.fundingledger.model.TransferEntry("t2", "Courier", 30_000.0),
+            ),
+        )
+        val d = LedgerCalculator.derive(edited)
+        assertEquals(80_000.0, d.transfersMade, 1e-6)
+        assertEquals(204_164.289 - 80_000.0, d.remainingTransfer, 1e-3)
+        // Sending tranches does not change the total that needs to move.
+        assertEquals(204_164.289, d.transferKsaToSy, 1e-3)
+    }
+
+    @Test
     fun `editing a fixed amount ripples into the plug`() {
         val edited = seed.copy(rows = seed.rows.map {
             if (it.id == "cash-riyadh") it.copy(amount = 40_000.0) else it
