@@ -4,14 +4,14 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Simple ledger glyph: three banded rows -->
+    <!-- Gold diamond, same as the original GoldMonitor launcher icon -->
     <path
-        android:fillColor="#D8ECDC"
-        android:pathData="M30,34h48v10h-48z" />
+        android:fillColor="#E8C558"
+        android:pathData="M54,28 L74,48 L54,80 L34,48 Z" />
     <path
-        android:fillColor="#E9C9C9"
-        android:pathData="M30,49h48v10h-48z" />
+        android:fillColor="#F4DC8A"
+        android:pathData="M54,28 L74,48 L54,54 L34,48 Z" />
     <path
-        android:fillColor="#FFF3A3"
-        android:pathData="M30,64h48v10h-48z" />
+        android:fillColor="#C9A23B"
+        android:pathData="M34,48 L54,54 L54,80 Z" />
 </vector>
