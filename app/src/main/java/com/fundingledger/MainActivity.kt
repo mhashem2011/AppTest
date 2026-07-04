@@ -11,7 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +21,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,16 +33,17 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import androidx.core.content.ContextCompat
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
@@ -127,8 +129,6 @@ private fun MainScreen(
     goldViewModel: GoldViewModel,
     onShareJson: (String) -> Unit,
 ) {
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-
     // Live-rate bridge: whenever a fresh gold snapshot lands (app open, manual
     // refresh, or the hourly worker having updated the cache), push its USD/oz
     // into the ledger so SAR/g, GOLD rows, and the plug recompute instantly.
@@ -137,18 +137,31 @@ private fun MainScreen(
         snapshot?.let { ledgerViewModel.syncGoldPrice(it.ozUsd) }
     }
 
-    // Render everything ~10% smaller so more of each page fits on screen.
-    val base = LocalDensity.current
-    CompositionLocalProvider(LocalDensity provides Density(base.density * 0.9f, base.fontScale)) {
-        Scaffold(
-            bottomBar = {
-                CompactNavBar(selected = selectedTab, onSelect = { selectedTab = it })
-            },
-        ) { padding ->
-            Box(Modifier.fillMaxSize().padding(padding)) {
-                when (selectedTab) {
-                    0 -> LedgerScreen(viewModel = ledgerViewModel, onShareJson = onShareJson)
-                    else -> GoldScreen(viewModel = goldViewModel)
+    val pagerState = rememberPagerState(pageCount = { 2 })
+    val scope = rememberCoroutineScope()
+
+    // Pin LTR so Ledger stays the left page and Gold the right page even on
+    // RTL-locale devices, then render everything ~10% smaller so more of each
+    // page fits on screen.
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        val base = LocalDensity.current
+        CompositionLocalProvider(LocalDensity provides Density(base.density * 0.9f, base.fontScale)) {
+            Scaffold(
+                bottomBar = {
+                    CompactNavBar(
+                        selected = pagerState.currentPage,
+                        onSelect = { scope.launch { pagerState.animateScrollToPage(it) } },
+                    )
+                },
+            ) { padding ->
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                ) { page ->
+                    when (page) {
+                        0 -> LedgerScreen(viewModel = ledgerViewModel, onShareJson = onShareJson)
+                        else -> GoldScreen(viewModel = goldViewModel)
+                    }
                 }
             }
         }

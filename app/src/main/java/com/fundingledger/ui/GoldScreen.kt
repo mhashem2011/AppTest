@@ -17,8 +17,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -64,16 +66,32 @@ private fun trendEmoji(t: GoldRepository.Trend): String = when (t) {
     GoldRepository.Trend.FLAT -> "➡️"
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoldScreen(viewModel: GoldViewModel) {
     val snapshot by viewModel.snapshot.collectAsState()
     val refreshing by viewModel.refreshing.collectAsState()
     val failed by viewModel.failed.collectAsState()
 
+    PullToRefreshBox(
+        isRefreshing = refreshing,
+        onRefresh = viewModel::refresh,
+        modifier = Modifier.fillMaxSize().background(GoldColors.Bg),
+    ) {
+        GoldContent(snapshot, refreshing, failed, viewModel)
+    }
+}
+
+@Composable
+private fun GoldContent(
+    snapshot: GoldRepository.Snapshot?,
+    refreshing: Boolean,
+    failed: Boolean,
+    viewModel: GoldViewModel,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(GoldColors.Bg)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
