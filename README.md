@@ -1,8 +1,16 @@
 # FundingLedger
 
-A single-screen native Android app that automates a hand-maintained
-**Asset Balancing Ledger** for a house purchase: edit any number and every
-derived value recalculates instantly.
+A native Android app with two pages behind a bottom nav bar:
+
+1. **Ledger** — automates a hand-maintained **Asset Balancing Ledger** for a
+   house purchase: edit any number and every derived value recalculates
+   instantly.
+2. **Gold** — the GoldMonitor dashboard merged in: live XAU/USD from
+   api.gold-api.com, SAR/g conversion, 1h/3h/yesterday history chips,
+   200g portfolio P/L, and hourly background alerts on ±0.5% moves.
+
+Every fresh live rate is pushed into the Ledger's `xauUsd`, so SAR/g, GOLD
+rows, and the plug recompute automatically from real market data.
 
 ## Stack
 

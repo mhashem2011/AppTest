@@ -56,6 +56,18 @@ class LedgerViewModel(private val repository: LedgerRepository) : ViewModel() {
     /** Editing xauUsd drops any manual price override so the formula drives again. */
     fun setXauUsd(value: Double) = update { it.copy(xauUsd = value, pricePerGramOverride = null) }
 
+    /**
+     * Live-rate feed from the Gold page: push the fetched USD/oz into the ledger so
+     * SAR/g, GOLD rows, and the plug all recompute. Clears any manual override
+     * (live data wins). No-op when the value is unchanged, so recompositions and
+     * repeated snapshots don't cause redundant disk writes.
+     */
+    fun syncGoldPrice(ozUsd: Double) {
+        val current = _ledger.value
+        if (current.xauUsd == ozUsd && current.pricePerGramOverride == null) return
+        update { it.copy(xauUsd = ozUsd, pricePerGramOverride = null) }
+    }
+
     fun setPricePerGram(value: Double) = update { it.copy(pricePerGramOverride = value) }
 
     fun setRowAmount(id: String, amount: Double) = updateRow(id) { it.copy(amount = amount) }

@@ -128,6 +128,27 @@ class LedgerCalculatorTest {
     }
 
     @Test
+    fun `live gold feed and ledger use the same conversion formula`() {
+        // The Gold page pushes USD/oz into the ledger; both sides must derive the
+        // identical SAR/g from it (oz / 31.1 * 3.75).
+        val oz = 4176.0
+        val fromFeed = com.fundingledger.gold.GoldConfig.sarPerGram(oz)
+        val fromLedger = LedgerCalculator.pricePerGram(seed.copy(xauUsd = oz, pricePerGramOverride = null))
+        assertEquals(fromFeed, fromLedger, 1e-9)
+    }
+
+    @Test
+    fun `syncing a live rate updates gold rows and plug through the ledger`() {
+        // Simulates GoldViewModel delivering a fresh oz price into the ledger state.
+        val liveOz = 4250.0
+        val synced = seed.copy(xauUsd = liveOz, pricePerGramOverride = null)
+        val d = LedgerCalculator.derive(synced)
+        val price = com.fundingledger.gold.GoldConfig.sarPerGram(liveOz)
+        assertEquals(100.0 * price, d.rows.first { it.row.id == "gold-riyadh" }.amount, 1e-6)
+        assertEquals(synced.target, d.grandTotal, 1e-6)
+    }
+
+    @Test
     fun `ledger without a plug reports a funding gap`() {
         val noPlug = Ledger(
             target = 100_000.0,
