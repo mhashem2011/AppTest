@@ -24,8 +24,8 @@ class LedgerCalculatorTest {
     @Test
     fun `price per gram derives from the seeded xauUsd`() {
         assertEquals(seedPrice, derived.pricePerGram, 1e-9)
-        // Sanity-check against the value shown in the app (≈ 501.39).
-        assertEquals(501.39, derived.pricePerGram, 0.01)
+        // Sanity-check against the value shown in the app (≈ 496.95).
+        assertEquals(496.95, derived.pricePerGram, 0.01)
     }
 
     @Test
@@ -43,26 +43,26 @@ class LedgerCalculatorTest {
     @Test
     fun `plug absorbs the remainder so total equals target`() {
         // Everything but the plug, subtracted from target.
-        val nonPlug = 118_500.0 + 5_000.0 + 100.0 * seedPrice + 93.3 * seedPrice + 45_000.0
+        val nonPlug = 117_750.0 + 5_000.0 + 100.0 * seedPrice + 93.3 * seedPrice + 45_000.0
         assertEquals(seed.target - nonPlug, amountOf("july-slry"), 1e-6)
-        // Matches the app's displayed plug (≈ 12,081).
-        assertEquals(12_081.0, amountOf("july-slry"), 0.5)
+        // Matches the app's displayed plug (≈ 13,689).
+        assertEquals(13_689.0, amountOf("july-slry"), 0.5)
         assertEquals(seed.target, derived.grandTotal, 1e-6)
         assertEquals(0.0, derived.fundingGap, 1e-6)
     }
 
     @Test
     fun `subtotals split by category`() {
-        assertEquals(118_500.0, derived.greenSubtotal, 1e-6)
-        assertEquals(seed.target - 118_500.0, derived.redSubtotal, 1e-6)
+        assertEquals(117_750.0, derived.greenSubtotal, 1e-6)
+        assertEquals(seed.target - 117_750.0, derived.redSubtotal, 1e-6)
     }
 
     @Test
     fun `transfer sums only inTransfer rows`() {
         val expected = derived.rows.filter { it.row.inTransfer }.sumOf { it.amount }
         assertEquals(expected, derived.transferKsaToSy, 1e-6)
-        // Matches the app's displayed transfer total (≈ 193,220).
-        assertEquals(193_220.0, derived.transferKsaToSy, 0.5)
+        // Matches the app's displayed transfer total (≈ 156,134).
+        assertEquals(156_134.0, derived.transferKsaToSy, 0.5)
     }
 
     @Test
@@ -70,8 +70,8 @@ class LedgerCalculatorTest {
         // Seed ships with a 37,500 "My travel cash" tranche already sent.
         assertEquals(37_500.0, derived.transfersMade, 1e-6)
         assertEquals(derived.transferKsaToSy - 37_500.0, derived.remainingTransfer, 1e-6)
-        // Matches the app's displayed remaining (≈ 155,720).
-        assertEquals(155_720.0, derived.remainingTransfer, 0.5)
+        // Matches the app's displayed remaining (≈ 118,634).
+        assertEquals(118_634.0, derived.remainingTransfer, 0.5)
     }
 
     @Test
