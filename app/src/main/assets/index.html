@@ -109,7 +109,7 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const STORE = "cashflow.v1";
+const STORE = "cashflow.v2";   // bumped: reseeds corrected plan (salary shift + 21,500 opening)
 
 function defaultData(){
   const salary = () => ([
@@ -117,9 +117,11 @@ function defaultData(){
     {label:"SLRY Bank", sar:4500}
   ]);
   return {
-    openingBalance: 22000,   // cash on hand today (opening for Jul-26)
+    openingBalance: 21500,   // cash on hand today (opening for Jul-26)
     months: [
-      {key:"Jul-26", name:"July 2026",      inflows:salary(), outflows:[]},
+      // Salaries are received at the START of the following month, so July's
+      // salary lands in August. July therefore has no salary inflow.
+      {key:"Jul-26", name:"July 2026",      inflows:[], outflows:[]},
       {key:"Aug-26", name:"August 2026",    inflows:[...salary(), {label:"BNS bonus", sar:45000}],
                                             outflows:[{label:"Maid", sar:17700}]},
       {key:"Sep-26", name:"September 2026",  inflows:salary(),
