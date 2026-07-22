@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monthly Cashflow</title>
+<style>
+  :root{
+    --bg:#0e1116; --card:#161b22; --card2:#1c232d; --line:#2a323d;
+    --text:#e6edf3; --muted:#8b98a6; --accent:#3b82f6;
+    --in:#34d399; --out:#f87171; --gold:#fbbf24;
+    --usd:#93c5fd;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    padding:env(safe-area-inset-top) 0 90px 0;font-size:15px}
+  header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#0e1116 0%,#0e1116f2 100%);
+    padding:14px 16px 10px;border-bottom:1px solid var(--line);backdrop-filter:blur(8px)}
+  h1{margin:0;font-size:19px;font-weight:700;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .summary{display:flex;gap:8px;margin-top:12px;overflow-x:auto;padding-bottom:2px}
+  .schip{flex:0 0 auto;background:var(--card2);border:1px solid var(--line);border-radius:12px;
+    padding:8px 12px;min-width:120px}
+  .schip .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .schip .val{font-size:16px;font-weight:700;margin-top:3px}
+  .schip .usd{font-size:11px;color:var(--usd);margin-top:1px}
+  main{padding:14px 16px}
+  .month{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:14px;overflow:hidden}
+  .mhead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer}
+  .mhead .mname{font-size:16px;font-weight:700}
+  .mhead .mclose{text-align:right}
+  .mhead .mclose .n{font-size:16px;font-weight:700}
+  .mhead .mclose .u{font-size:11px;color:var(--usd)}
+  .caret{transition:transform .2s;color:var(--muted);font-size:13px;margin-left:10px}
+  .month.open .caret{transform:rotate(90deg)}
+  .body{display:none;padding:0 16px 16px}
+  .month.open .body{display:block}
+  .row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  .row:first-child{border-top:none}
+  .row .name{flex:1;min-width:0}
+  .row .name input{width:100%;background:transparent;border:none;color:var(--text);font-size:14px;padding:4px 0}
+  .row .amt{width:118px;text-align:right}
+  .row .amt input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    color:var(--text);font-size:14px;text-align:right;padding:7px 8px;font-variant-numeric:tabular-nums}
+  .row .usd{width:78px;text-align:right;font-size:11px;color:var(--usd);font-variant-numeric:tabular-nums}
+  .row .del{width:26px;text-align:center;color:var(--out);opacity:.7;font-size:18px;cursor:pointer;background:none;border:none}
+  .sec{margin-top:14px}
+  .sec .stitle{display:flex;justify-content:space-between;align-items:center;font-size:12px;
+    text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:2px}
+  .sec.inflow .stitle{color:var(--in)}
+  .sec.outflow .stitle{color:var(--out)}
+  .add{background:none;border:1px dashed var(--line);color:var(--muted);border-radius:8px;
+    padding:7px;width:100%;margin-top:6px;font-size:13px;cursor:pointer}
+  .totrow{display:flex;justify-content:space-between;padding:8px 0 2px;font-weight:600;font-size:14px}
+  .totrow .usd{font-size:11px;color:var(--usd);font-weight:400;margin-left:6px}
+  .stat{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-top:1px solid var(--line);margin-top:10px}
+  .stat .k{color:var(--muted);font-size:13px}
+  .stat .v{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+  .stat .v .u{display:block;font-size:11px;color:var(--usd);font-weight:400;text-align:right}
+  .open-edit{display:flex;align-items:center;gap:10px;padding:8px 0}
+  .open-edit label{flex:1;color:var(--muted);font-size:13px}
+  .open-edit input{width:118px;background:var(--card2);border:1px solid var(--line);border-radius:8px;
+    color:var(--text);text-align:right;padding:7px 8px;font-size:14px;font-variant-numeric:tabular-nums}
+  .open-fixed{color:var(--muted);font-size:12px}
+  .neveen{background:linear-gradient(135deg,#3a2f05,#241d02);border:1px solid #5b4a08;border-radius:12px;
+    padding:12px 14px;margin-top:12px}
+  .neveen .t{color:var(--gold);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+  .neveen .g{display:flex;justify-content:space-between;margin-top:6px;font-size:14px}
+  .neveen .g .v{font-weight:700;font-variant-numeric:tabular-nums}
+  .pos{color:var(--in)} .neg{color:var(--out)}
+  .fab{position:fixed;left:0;right:0;bottom:0;background:#0e1116f2;border-top:1px solid var(--line);
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;backdrop-filter:blur(8px)}
+  .btn{flex:1;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:600;cursor:pointer}
+  .btn.reset{background:var(--card2);color:var(--muted);border:1px solid var(--line)}
+  .btn.expand{background:var(--accent);color:#fff}
+  .hint{color:var(--muted);font-size:11px;text-align:center;margin:2px 0 10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Monthly Cashflow</h1>
+  <div class="sub">House Payment Plan &middot; Jul 2026 – Jan 2027 &middot; SAR (1 USD = 3.75 SAR)</div>
+  <div class="summary" id="summary"></div>
+</header>
+<main id="main"></main>
+<div class="hint" id="savehint">Changes save automatically on this device</div>
+
+<div class="fab">
+  <button class="btn reset" id="resetBtn">Reset to plan</button>
+  <button class="btn expand" id="expandBtn">Expand all</button>
+</div>
+
+<script>
+const RATE = 3.75;              // 1 USD = 3.75 SAR
+const TARGET = 90000;           // Neveen Money target (SAR)
+const STORE = "cashflow.v1";
+
+// ---- Default plan (current values from the spreadsheet) ----
+function defaultData(){
+  const salary = () => ([
+    {label:"SLRY CS",   sar:12000},
+    {label:"SLRY Bank", sar:4500}
+  ]);
+  return {
+    openingBalance: 22000,   // cash on hand today (opening for Jul-26)
+    months: [
+      {key:"Jul-26", name:"July 2026",     inflows:salary(), outflows:[]},
+      {key:"Aug-26", name:"August 2026",   inflows:[...salary(), {label:"BNS bonus", sar:45000}],
+                                            outflows:[{label:"Maid", sar:17700}]},
+      {key:"Sep-26", name:"September 2026", inflows:salary(),
+                                            outflows:[{label:"Court HSE", sar:20000},{label:"House rent", sar:43000}]},
+      {key:"Oct-26", name:"October 2026",  inflows:salary(), outflows:[]},
+      {key:"Nov-26", name:"November 2026", inflows:salary(), outflows:[]},
+      {key:"Dec-26", name:"December 2026", inflows:salary(), outflows:[]},
+      {key:"Jan-27", name:"January 2027",  inflows:salary(), outflows:[]}
+    ]
+  };
+}
+
+let data = load();
+let openMonths = new Set([0]); // first month expanded by default
+
+function load(){
+  try{ const s = localStorage.getItem(STORE); if(s) return JSON.parse(s); }catch(e){}
+  return defaultData();
+}
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(data)); }catch(e){} }
+
+// ---- Formatting ----
+const fmt = n => Math.round(n).toLocaleString("en-US");
+const usd = sar => "$" + Math.round(sar/RATE).toLocaleString("en-US");
+const sum = arr => arr.reduce((t,x)=> t + (Number(x.sar)||0), 0);
+
+// ---- Compute running balances ----
+function compute(){
+  let opening = Number(data.openingBalance)||0;
+  return data.months.map(m=>{
+    const inf = sum(m.inflows), outf = sum(m.outflows);
+    const net = inf - outf, closing = opening + net;
+    const r = {opening, inf, outf, net, closing};
+    opening = closing;
+    return r;
+  });
+}
+
+// ---- Render ----
+function render(){
+  const calc = compute();
+  const last = calc[calc.length-1];
+  const totalIn = calc.reduce((t,c)=>t+c.inf,0);
+  // summary chips
+  document.getElementById("summary").innerHTML = `
+    ${chip("Closing (Jan-27)", last.closing)}
+    ${chip("Total inflows", totalIn)}
+    ${chip("Total outflows", calc.reduce((t,c)=>t+c.outf,0))}
+    ${chip("Neveen Money", TARGET, last.closing-TARGET)}
+  `;
+  const main = document.getElementById("main");
+  main.innerHTML = data.months.map((m,i)=>monthCard(m,i,calc[i])).join("");
+  bind();
+}
+function chip(lbl,val,gap){
+  let extra="";
+  if(gap!==undefined){
+    const cls = gap>=0?"pos":"neg";
+    extra = `<div class="usd ${cls}">${gap>=0?"+":""}${fmt(gap)} vs target</div>`;
+  }
+  return `<div class="schip"><div class="lbl">${lbl}</div>
+    <div class="val">${fmt(val)}</div><div class="usd">${usd(val)}</div>${extra}</div>`;
+}
+function monthCard(m,i,c){
+  const isOpen = openMonths.has(i);
+  const openingEditor = i===0
+    ? `<div class="open-edit"><label>Opening balance (cash on hand)</label>
+        <input type="text" inputmode="numeric" data-open="1" value="${fmt(c.opening)}"></div>
+        <div class="row" style="border:none"><span class="usd">${usd(c.opening)}</span></div>`
+    : `<div class="open-edit"><label>Opening balance (from previous month)</label>
+        <span class="open-fixed">${fmt(c.opening)} &middot; ${usd(c.opening)}</span></div>`;
+  const gap = c.closing - TARGET;
+  return `
+  <div class="month ${isOpen?'open':''}" data-m="${i}">
+    <div class="mhead" data-toggle="${i}">
+      <div class="mname">${m.name} <span class="caret">&#9654;</span></div>
+      <div class="mclose"><div class="n">${fmt(c.closing)}</div><div class="u">${usd(c.closing)}</div></div>
+    </div>
+    <div class="body">
+      ${openingEditor}
+      <div class="sec inflow">
+        <div class="stitle"><span>Inflows</span><span>+${fmt(c.inf)} &middot; ${usd(c.inf)}</span></div>
+        ${m.inflows.map((it,j)=>lineRow(i,"inflows",j,it)).join("")}
+        <button class="add" data-add="${i}" data-type="inflows">+ Add inflow</button>
+      </div>
+      <div class="sec outflow">
+        <div class="stitle"><span>Outflows</span><span>-${fmt(c.outf)} &middot; ${usd(c.outf)}</span></div>
+        ${m.outflows.map((it,j)=>lineRow(i,"outflows",j,it)).join("")}
+        <button class="add" data-add="${i}" data-type="outflows">+ Add outflow</button>
+      </div>
+      <div class="stat"><span class="k">Net movement</span>
+        <span class="v ${c.net>=0?'pos':'neg'}">${c.net>=0?"+":""}${fmt(c.net)}<span class="u">${usd(c.net)}</span></span></div>
+      <div class="stat"><span class="k">Closing balance</span>
+        <span class="v">${fmt(c.closing)}<span class="u">${usd(c.closing)}</span></span></div>
+      <div class="neveen">
+        <div class="t">Neveen Money target</div>
+        <div class="g"><span>Target</span><span class="v">${fmt(TARGET)} &middot; ${usd(TARGET)}</span></div>
+        <div class="g"><span>Gap vs target</span>
+          <span class="v ${gap>=0?'pos':'neg'}">${gap>=0?"+":""}${fmt(gap)} &middot; ${gap>=0?"+":""}${usd(gap)}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+function lineRow(mi,type,j,it){
+  return `<div class="row">
+    <div class="name"><input type="text" value="${escapeHtml(it.label)}"
+        data-label="1" data-mi="${mi}" data-type="${type}" data-j="${j}" placeholder="Description"></div>
+    <div class="amt"><input type="text" inputmode="numeric" value="${fmt(it.sar)}"
+        data-amt="1" data-mi="${mi}" data-type="${type}" data-j="${j}"></div>
+    <div class="usd">${usd(it.sar)}</div>
+    <button class="del" data-del="1" data-mi="${mi}" data-type="${type}" data-j="${j}">&times;</button>
+  </div>`;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function parseNum(v){ return Number(String(v).replace(/[^0-9.-]/g,""))||0; }
+
+// ---- Events ----
+function bind(){
+  document.querySelectorAll("[data-toggle]").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const i=+el.dataset.toggle;
+      if(openMonths.has(i)) openMonths.delete(i); else openMonths.add(i);
+      render();
+    });
+  });
+  document.querySelectorAll("[data-open]").forEach(el=>{
+    el.addEventListener("change",()=>{ data.openingBalance=parseNum(el.value); save(); render(); });
+  });
+  document.querySelectorAll("[data-amt]").forEach(el=>{
+    el.addEventListener("change",()=>{
+      const {mi,type,j}=el.dataset;
+      data.months[mi][type][j].sar=parseNum(el.value); save(); render();
+    });
+  });
+  document.querySelectorAll("[data-label]").forEach(el=>{
+    el.addEventListener("change",()=>{
+      const {mi,type,j}=el.dataset;
+      data.months[mi][type][j].label=el.value; save();
+    });
+  });
+  document.querySelectorAll("[data-del]").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const {mi,type,j}=el.dataset;
+      data.months[mi][type].splice(+j,1); save(); render();
+    });
+  });
+  document.querySelectorAll("[data-add]").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const i=+el.dataset.add, type=el.dataset.type;
+      data.months[i][type].push({label:"",sar:0}); openMonths.add(i); save(); render();
+    });
+  });
+}
+
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  if(confirm("Reset all values back to the original plan?")){
+    data=defaultData(); openMonths=new Set([0]); save(); render();
+  }
+});
+let allOpen=false;
+document.getElementById("expandBtn").addEventListener("click",()=>{
+  allOpen=!allOpen;
+  openMonths = allOpen ? new Set(data.months.map((_,i)=>i)) : new Set([0]);
+  document.getElementById("expandBtn").textContent = allOpen?"Collapse all":"Expand all";
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
