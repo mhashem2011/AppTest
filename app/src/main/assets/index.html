@@ -27,13 +27,22 @@
   main{padding:14px 16px}
 
   /* ---- Home ---- */
-  .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-  .schip{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px}
-  .schip.wide{grid-column:1 / -1;background:linear-gradient(135deg,#12233f,#0e1a2e);border-color:#26456f}
-  .schip .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-  .schip .val{font-size:20px;font-weight:700;margin-top:4px}
-  .schip .usd{font-size:12px;color:var(--usd);margin-top:2px}
-  .schip .tag{font-size:12px;margin-top:4px;font-weight:600}
+  .hero{background:linear-gradient(135deg,#12233f,#0e1a2e);border:1px solid #26456f;
+    border-radius:18px;padding:18px 18px 16px;margin-bottom:14px}
+  .hero .hlbl{font-size:12px;color:#9fc0ea;text-transform:uppercase;letter-spacing:.6px}
+  .hero .hrow{display:flex;align-items:baseline;gap:8px;margin-top:10px}
+  .hero .hrow input{flex:1;min-width:0;background:transparent;border:none;border-bottom:1px solid #2f5a8f;
+    color:var(--text);font-size:36px;font-weight:800;padding:2px 0;font-variant-numeric:tabular-nums;outline:none}
+  .hero .hcur{color:var(--muted);font-size:15px;font-weight:700}
+  .hero .husd{color:var(--usd);font-size:14px;margin-top:8px}
+  .hero .hhint{color:#7fa3cf;font-size:11px;margin-top:2px}
+  .projcard{display:flex;justify-content:space-between;align-items:center;background:var(--card2);
+    border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:18px}
+  .projcard .k{font-size:12px;color:var(--muted)}
+  .projcard .k small{display:block;font-size:11px;margin-top:2px}
+  .projcard .v{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .projcard .v small{display:block;font-size:11px;font-weight:600;margin-top:2px}
+  .listhdr{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:0 2px 8px}
 
   .mlist{display:flex;flex-direction:column;gap:10px}
   .mrow{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
@@ -168,25 +177,32 @@ function render(){
 function renderHome(){
   const calc = compute();
   const last = calc[calc.length-1];
-  const totalIn = calc.reduce((t,c)=>t+c.inf,0);
-  const totalOut = calc.reduce((t,c)=>t+c.outf,0);
   const gapEnd = last.closing - TARGET;
+  const openBal = Number(data.openingBalance)||0;
+  const firstName = data.months[0].name;
+  const lastName = data.months[data.months.length-1].name;
 
   document.getElementById("hdr").classList.remove("sub");
   document.getElementById("hTitle").textContent = "Monthly Cashflow";
   document.getElementById("hSub").innerHTML = "Jul 2026 – Jan 2027 &middot; 1 USD = 3.75 SAR";
 
-  const chips = `
-    <div class="summary">
-      <div class="schip wide"><div class="lbl">Closing balance (Jan 2027)</div>
-        <div class="val">${fmt(last.closing)} <span style="font-size:13px;color:var(--muted)">SAR</span></div>
-        <div class="usd">${usd(last.closing)}</div>
-        <div class="tag ${gapEnd>=0?'pos':'neg'}">${gapEnd>=0?"+":""}${fmt(gapEnd)} vs Neveen Money</div></div>
-      <div class="schip"><div class="lbl">Total inflows</div>
-        <div class="val">${fmt(totalIn)}</div><div class="usd">${usd(totalIn)}</div></div>
-      <div class="schip"><div class="lbl">Total outflows</div>
-        <div class="val">${fmt(totalOut)}</div><div class="usd">${usd(totalOut)}</div></div>
-    </div>`;
+  const head = `
+    <div class="hero">
+      <div class="hlbl">Funds available today</div>
+      <div class="hrow">
+        <input type="text" inputmode="numeric" data-funds="1" value="${fmt(openBal)}">
+        <span class="hcur">SAR</span>
+      </div>
+      <div class="husd">${usd(openBal)}</div>
+      <div class="hhint">Tap to edit &middot; this is your starting cash for ${firstName}</div>
+    </div>
+    <div class="projcard">
+      <div class="k">Projected balance<small>${lastName}</small></div>
+      <div class="v">${fmt(last.closing)}
+        <small style="color:var(--usd)">${usd(last.closing)}</small>
+        <small class="${gapEnd>=0?'pos':'neg'}">${gapEnd>=0?"+":""}${fmt(gapEnd)} vs Neveen Money</small></div>
+    </div>
+    <div class="listhdr">Monthly income &amp; expenses</div>`;
 
   const rows = data.months.map((m,i)=>{
     const c = calc[i];
@@ -200,10 +216,14 @@ function renderHome(){
     </div>`;
   }).join("");
 
-  document.getElementById("main").innerHTML = chips + `<div class="mlist">${rows}</div>`;
+  document.getElementById("main").innerHTML = head + `<div class="mlist">${rows}</div>`;
   document.getElementById("fab").innerHTML =
     `<button class="btn ghost" id="resetBtn">Reset to plan</button>`;
 
+  const fundsEl = document.querySelector("[data-funds]");
+  if(fundsEl) fundsEl.addEventListener("change",()=>{
+    data.openingBalance = parseNum(fundsEl.value); save(); render();
+  });
   document.querySelectorAll("[data-open]").forEach(el=>{
     el.addEventListener("click",()=>{ view=+el.dataset.open; scrollTo(0,0); render(); });
   });
@@ -225,12 +245,12 @@ function renderMonth(i){
   document.getElementById("hTitle").textContent = m.name;
   document.getElementById("hSub").innerHTML = `Month ${i+1} of ${data.months.length} &middot; 1 USD = 3.75 SAR`;
 
-  const openingBlock = i===0
-    ? `<div class="open-edit"><label>Opening balance<br><span style="font-size:11px">cash on hand today</span></label>
-        <div style="text-align:right"><input type="text" inputmode="numeric" data-open="1" value="${fmt(c.opening)}">
-        <div class="usd" style="font-size:11px;color:var(--usd);margin-top:3px">${usd(c.opening)}</div></div></div>`
-    : `<div class="open-edit"><label>Opening balance<br><span style="font-size:11px">carried from ${data.months[i-1].name}</span></label>
-        <div class="open-fixed">${fmt(c.opening)}<span>${usd(c.opening)}</span></div></div>`;
+  const openingNote = i===0
+    ? "funds available today (edit on home)"
+    : `carried from ${data.months[i-1].name}`;
+  const openingBlock =
+    `<div class="open-edit"><label>Opening balance<br><span style="font-size:11px">${openingNote}</span></label>
+      <div class="open-fixed">${fmt(c.opening)}<span>${usd(c.opening)}</span></div></div>`;
 
   const inRows = m.inflows.map((it,j)=>lineRow(i,"inflows",j,it)).join("");
   const outRows = m.outflows.map((it,j)=>lineRow(i,"outflows",j,it)).join("");
@@ -282,9 +302,6 @@ function lineRow(mi,type,j,it){
 }
 
 function bindMonth(){
-  document.querySelectorAll("[data-open]").forEach(el=>{
-    el.addEventListener("change",()=>{ data.openingBalance=parseNum(el.value); save(); render(); });
-  });
   document.querySelectorAll("[data-amt]").forEach(el=>{
     el.addEventListener("change",()=>{
       const {mi,type,j}=el.dataset;
