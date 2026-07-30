@@ -126,12 +126,14 @@ function defaultData(){
     {label:"SLRY Bank", sar:4500}
   ]);
   return {
-    openingBalance: 21500,   // cash on hand today (opening for Jul-26)
+    openingBalance: 84230,   // cash on hand today (opening for Jul-26)
     months: [
-      // Salaries are received at the START of the following month, so July's
-      // salary lands in August. July therefore has no salary inflow.
+      // Salaries are received at the START of the following month, so each
+      // month's inflow is the previous month's pay. July's salary and the BNS
+      // bonus have already been received and sit inside the opening balance,
+      // so July and August carry no salary inflow.
       {key:"Jul-26", name:"July 2026",      inflows:[], outflows:[]},
-      {key:"Aug-26", name:"August 2026",    inflows:[...salary(), {label:"BNS bonus", sar:45000}],
+      {key:"Aug-26", name:"August 2026",    inflows:[],
                                             outflows:[{label:"Maid", sar:17700}]},
       {key:"Sep-26", name:"September 2026",  inflows:salary(),
                                             outflows:[{label:"Court HSE", sar:20000},{label:"House rent", sar:43000}]},
