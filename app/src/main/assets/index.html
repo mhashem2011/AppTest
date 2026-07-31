@@ -119,6 +119,11 @@
   .btn.ghost:disabled{opacity:.35}
   .btn.primary{background:var(--accent);color:#fff}
   .hint{color:var(--muted);font-size:11px;text-align:center;margin-top:4px}
+  .toast{position:fixed;left:50%;bottom:104px;transform:translateX(-50%) translateY(8px);
+    background:#16202e;color:#fff;padding:11px 20px;border-radius:22px;font-size:14px;font-weight:600;
+    box-shadow:0 8px 24px rgba(0,0,0,.28);opacity:0;pointer-events:none;z-index:50;
+    transition:opacity .22s ease, transform .22s ease}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
@@ -225,6 +230,22 @@ function bindField(el, apply, refresh){
   el.addEventListener("change",()=>{ apply(el.value); save(); if(refresh) render(); });
 }
 
+// Brief confirmation message; lives outside #main so re-renders don't remove it.
+let toastTimer = null;
+function toast(msg){
+  let t = document.getElementById("toast");
+  if(!t){ t = document.createElement("div"); t.id = "toast"; t.className = "toast"; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 1800);
+}
+// Commit any field still being edited, persist, refresh totals, confirm.
+function saveNow(){
+  try{ document.activeElement && document.activeElement.blur(); }catch(e){}
+  save(); render(); toast("Saved");
+}
+
 // Flush to storage if the app is backgrounded or closed mid-edit.
 function flushOnExit(){
   const flush = ()=>{ try{ document.activeElement && document.activeElement.blur(); }catch(e){} save(); };
@@ -325,7 +346,7 @@ function renderHome(){
 
   document.getElementById("main").innerHTML = head + `<div class="mlist">${rows}</div>`;
   document.getElementById("fab").innerHTML =
-    `<button class="btn ghost" id="resetBtn">Reset to plan</button>`;
+    `<button class="btn primary" id="saveBtn">Save</button>`;
 
   document.querySelectorAll("[data-wamt]").forEach(el=>{
     bindField(el, v=>{ data.wallets[+el.dataset.wamt].amt = parseNum(v); }, true);
@@ -352,11 +373,7 @@ function renderHome(){
   document.querySelectorAll("[data-open]").forEach(el=>{
     el.addEventListener("click",()=>{ view=+el.dataset.open; scrollTo(0,0); render(); });
   });
-  document.getElementById("resetBtn").addEventListener("click",()=>{
-    if(confirm("Reset all values back to the original plan?")){
-      data=defaultData(); save(); render();
-    }
-  });
+  document.getElementById("saveBtn").addEventListener("click", saveNow);
 }
 
 /* ---------- MONTH PAGE ---------- */
@@ -410,6 +427,7 @@ function renderMonth(i){
 
   document.getElementById("fab").innerHTML = `
     <button class="btn ghost" id="prevBtn" ${i===0?'disabled':''}>&#8249; Prev</button>
+    <button class="btn primary" id="saveBtn">Save</button>
     <button class="btn ghost" id="nextBtn" ${i===data.months.length-1?'disabled':''}>Next &#8250;</button>`;
 
   bindMonth();
@@ -469,6 +487,8 @@ function bindMonth(){
   const prev=document.getElementById("prevBtn"), next=document.getElementById("nextBtn");
   if(prev) prev.addEventListener("click",()=>{ if(view>0){view--;scrollTo(0,0);render();} });
   if(next) next.addEventListener("click",()=>{ if(view<data.months.length-1){view++;scrollTo(0,0);render();} });
+  const sv=document.getElementById("saveBtn");
+  if(sv) sv.addEventListener("click", saveNow);
 }
 
 document.getElementById("backBtn").addEventListener("click",()=>{ view="home"; scrollTo(0,0); render(); });
