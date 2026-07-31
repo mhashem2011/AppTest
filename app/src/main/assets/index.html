@@ -218,6 +218,22 @@ function walletSar(w){ return valSar(w); }
 function walletsTotal(){ return sum(data.wallets); }
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(data)); }catch(e){} }
 
+// Binds a text field so every keystroke is persisted immediately. Re-rendering
+// on each keystroke would steal focus, so totals are refreshed on blur instead.
+function bindField(el, apply, refresh){
+  el.addEventListener("input", ()=>{ apply(el.value); save(); });
+  el.addEventListener("change",()=>{ apply(el.value); save(); if(refresh) render(); });
+}
+
+// Flush to storage if the app is backgrounded or closed mid-edit.
+function flushOnExit(){
+  const flush = ()=>{ try{ document.activeElement && document.activeElement.blur(); }catch(e){} save(); };
+  document.addEventListener("visibilitychange", ()=>{ if(document.hidden) flush(); });
+  window.addEventListener("pagehide", flush);
+  window.addEventListener("beforeunload", flush);
+}
+flushOnExit();
+
 const fmt = n => Math.round(n).toLocaleString("en-US");
 // Keeps cents when a wallet actually has them, so 0.05 doesn't display as 0.
 const fmtAmt = n => {
@@ -312,9 +328,7 @@ function renderHome(){
     `<button class="btn ghost" id="resetBtn">Reset to plan</button>`;
 
   document.querySelectorAll("[data-wamt]").forEach(el=>{
-    el.addEventListener("change",()=>{
-      data.wallets[+el.dataset.wamt].amt = parseNum(el.value); save(); render();
-    });
+    bindField(el, v=>{ data.wallets[+el.dataset.wamt].amt = parseNum(v); }, true);
   });
   document.querySelectorAll("[data-wcur]").forEach(el=>{
     el.addEventListener("click",()=>{
@@ -324,9 +338,7 @@ function renderHome(){
     });
   });
   document.querySelectorAll("[data-wlabel]").forEach(el=>{
-    el.addEventListener("change",()=>{
-      data.wallets[+el.dataset.wlabel].label = el.value; save();
-    });
+    bindField(el, v=>{ data.wallets[+el.dataset.wlabel].label = v; }, false);
   });
   document.querySelectorAll("[data-wdel]").forEach(el=>{
     el.addEventListener("click",()=>{
@@ -421,11 +433,11 @@ function lineRow(mi,type,j,it){
 
 function bindMonth(){
   document.querySelectorAll("[data-amt]").forEach(el=>{
-    el.addEventListener("change",()=>{
+    bindField(el, v=>{
       const {mi,type,j}=el.dataset;
       const it=data.months[mi][type][j];
-      it.amt=parseNum(el.value); delete it.sar; save(); render();
-    });
+      it.amt=parseNum(v); delete it.sar;
+    }, true);
   });
   document.querySelectorAll("[data-icur]").forEach(el=>{
     el.addEventListener("click",()=>{
@@ -437,10 +449,10 @@ function bindMonth(){
     });
   });
   document.querySelectorAll("[data-label]").forEach(el=>{
-    el.addEventListener("change",()=>{
+    bindField(el, v=>{
       const {mi,type,j}=el.dataset;
-      data.months[mi][type][j].label=el.value; save();
-    });
+      data.months[mi][type][j].label=v;
+    }, false);
   });
   document.querySelectorAll("[data-del]").forEach(el=>{
     el.addEventListener("click",()=>{
