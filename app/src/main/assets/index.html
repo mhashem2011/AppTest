@@ -31,11 +31,21 @@
     border-radius:18px;padding:18px 18px 16px;margin-bottom:14px}
   .hero .hlbl{font-size:12px;color:#9fc0ea;text-transform:uppercase;letter-spacing:.6px}
   .hero .hrow{display:flex;align-items:baseline;gap:8px;margin-top:10px}
-  .hero .hrow input{flex:1;min-width:0;background:transparent;border:none;border-bottom:1px solid #2f5a8f;
-    color:var(--text);font-size:36px;font-weight:800;padding:2px 0;font-variant-numeric:tabular-nums;outline:none}
+  .hero .htot{flex:1;min-width:0;color:var(--text);font-size:36px;font-weight:800;
+    font-variant-numeric:tabular-nums}
   .hero .hcur{color:var(--muted);font-size:15px;font-weight:700}
-  .hero .husd{color:var(--usd);font-size:14px;margin-top:8px}
-  .hero .hhint{color:#7fa3cf;font-size:11px;margin-top:2px}
+  .hero .husd{color:var(--usd);font-size:14px;margin-top:4px}
+  .hero .hhint{color:#7fa3cf;font-size:11px;margin-top:10px}
+  .wallets{margin-top:14px;border-top:1px solid #2f5a8f;padding-top:6px}
+  .wrow{display:flex;align-items:center;gap:8px;padding:6px 0}
+  .wrow .wname{flex:1;min-width:0;background:transparent;border:none;color:var(--text);
+    font-size:14px;padding:4px 0;outline:none}
+  .wrow .wamt{width:104px;background:#0e1a2ecc;border:1px solid #2f5a8f;border-radius:8px;
+    color:var(--text);font-size:14px;text-align:right;padding:7px 8px;
+    font-variant-numeric:tabular-nums;outline:none}
+  .wrow .wusd{width:68px;text-align:right;font-size:11px;color:var(--usd);font-variant-numeric:tabular-nums}
+  .wempty{color:#7fa3cf;font-size:13px;padding:6px 0}
+  .wadd{border-color:#2f5a8f;color:#9fc0ea;margin-top:4px}
   .projcard{display:flex;justify-content:space-between;align-items:center;background:var(--card2);
     border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:18px}
   .projcard .k{font-size:12px;color:var(--muted)}
@@ -126,7 +136,9 @@ function defaultData(){
     {label:"SLRY Bank", sar:4500}
   ]);
   return {
-    openingBalance: 84230,   // cash on hand today (opening for Jul-26)
+    // Funds available today, split into named wallets. Their total is the
+    // opening balance for the first month.
+    wallets: [ {label:"Cash on hand", sar:84230} ],
     months: [
       // Salaries are received at the START of the following month, so each
       // month's inflow is the previous month's pay. July's salary and the BNS
@@ -149,9 +161,21 @@ let data = load();
 let view = "home";   // "home" or a month index (0..n)
 
 function load(){
-  try{ const s = localStorage.getItem(STORE); if(s) return JSON.parse(s); }catch(e){}
+  try{
+    const s = localStorage.getItem(STORE);
+    if(s){
+      const d = JSON.parse(s);
+      // Migrate saved data from a single opening balance to named wallets.
+      if(!Array.isArray(d.wallets)){
+        d.wallets = [{label:"Cash on hand", sar:Number(d.openingBalance)||0}];
+        delete d.openingBalance;
+      }
+      return d;
+    }
+  }catch(e){}
   return defaultData();
 }
+function walletsTotal(){ return sum(data.wallets||[]); }
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(data)); }catch(e){} }
 
 const fmt = n => Math.round(n).toLocaleString("en-US");
@@ -161,7 +185,7 @@ function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"
 function parseNum(v){ return Number(String(v).replace(/[^0-9.-]/g,""))||0; }
 
 function compute(){
-  let opening = Number(data.openingBalance)||0;
+  let opening = walletsTotal();
   return data.months.map(m=>{
     const inf = sum(m.inflows), outf = sum(m.outflows);
     const net = inf - outf, closing = opening + net;
@@ -180,7 +204,7 @@ function renderHome(){
   const calc = compute();
   const last = calc[calc.length-1];
   const gapEnd = last.closing - TARGET;
-  const openBal = Number(data.openingBalance)||0;
+  const openBal = walletsTotal();
   const firstName = data.months[0].name;
   const lastName = data.months[data.months.length-1].name;
 
@@ -188,15 +212,27 @@ function renderHome(){
   document.getElementById("hTitle").textContent = "Monthly Cashflow";
   document.getElementById("hSub").innerHTML = "Jul 2026 – Jan 2027 &middot; 1 USD = 3.75 SAR";
 
+  const walletRows = (data.wallets||[]).map((w,k)=>`
+    <div class="wrow">
+      <input class="wname" type="text" value="${escapeHtml(w.label)}" data-wlabel="${k}" placeholder="Wallet name">
+      <input class="wamt" type="text" inputmode="numeric" value="${fmt(w.sar)}" data-wamt="${k}">
+      <span class="wusd">${usd(w.sar)}</span>
+      <button class="del" data-wdel="${k}">&times;</button>
+    </div>`).join("");
+
   const head = `
     <div class="hero">
       <div class="hlbl">Funds available today</div>
       <div class="hrow">
-        <input type="text" inputmode="numeric" data-funds="1" value="${fmt(openBal)}">
+        <div class="htot">${fmt(openBal)}</div>
         <span class="hcur">SAR</span>
       </div>
       <div class="husd">${usd(openBal)}</div>
-      <div class="hhint">Tap to edit &middot; this is your starting cash for ${firstName}</div>
+      <div class="wallets">
+        ${walletRows || '<div class="wempty">No wallets yet</div>'}
+        <button class="add wadd" data-wadd="1">+ Add wallet</button>
+      </div>
+      <div class="hhint">Total of your wallets &middot; starting cash for ${firstName}</div>
     </div>
     <div class="projcard">
       <div class="k">Projected balance<small>${lastName}</small></div>
@@ -222,9 +258,24 @@ function renderHome(){
   document.getElementById("fab").innerHTML =
     `<button class="btn ghost" id="resetBtn">Reset to plan</button>`;
 
-  const fundsEl = document.querySelector("[data-funds]");
-  if(fundsEl) fundsEl.addEventListener("change",()=>{
-    data.openingBalance = parseNum(fundsEl.value); save(); render();
+  document.querySelectorAll("[data-wamt]").forEach(el=>{
+    el.addEventListener("change",()=>{
+      data.wallets[+el.dataset.wamt].sar = parseNum(el.value); save(); render();
+    });
+  });
+  document.querySelectorAll("[data-wlabel]").forEach(el=>{
+    el.addEventListener("change",()=>{
+      data.wallets[+el.dataset.wlabel].label = el.value; save();
+    });
+  });
+  document.querySelectorAll("[data-wdel]").forEach(el=>{
+    el.addEventListener("click",()=>{
+      data.wallets.splice(+el.dataset.wdel,1); save(); render();
+    });
+  });
+  const addW = document.querySelector("[data-wadd]");
+  if(addW) addW.addEventListener("click",()=>{
+    (data.wallets = data.wallets||[]).push({label:"",sar:0}); save(); render();
   });
   document.querySelectorAll("[data-open]").forEach(el=>{
     el.addEventListener("click",()=>{ view=+el.dataset.open; scrollTo(0,0); render(); });
