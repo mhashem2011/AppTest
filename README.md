@@ -1,6 +1,6 @@
-# Monthly Cashflow
+# Neveen
 
-A simple Android app to track monthly **inflows** and **outflows** for the House
+A simple Android app (**Neveen**) to track monthly **inflows** and **outflows** for the House
 Payment Plan (Jul 2026 → Jan 2027). Every value is shown in **SAR** with its
 **USD equivalent** (1 USD = 3.75 SAR). The savings target of **90,000 SAR** is
 labelled **"Neveen Money"**.
@@ -17,9 +17,9 @@ labelled **"Neveen Money"**.
 ## Install on your phone
 The APK is built automatically by GitHub Actions and published as a Release.
 
-1. Open the repository's **Releases** page and download `MonthlyCashflow.apk`
+1. Open the repository's **Releases** page and download `Neveen.apk`
    from the release tagged **`cashflow-latest`**, or use the direct asset link:
-   `https://github.com/mhashem2011/apptest/releases/download/cashflow-latest/MonthlyCashflow.apk`
+   `https://github.com/mhashem2011/apptest/releases/download/cashflow-latest/Neveen.apk`
 2. On the phone, allow installing apps from unknown sources when prompted.
 3. Open the downloaded APK and tap **Install**.
 

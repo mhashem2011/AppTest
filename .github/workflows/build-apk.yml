@@ -31,13 +31,13 @@ jobs:
         run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Stage APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk MonthlyCashflow.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk Neveen.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MonthlyCashflow-apk
-          path: MonthlyCashflow.apk
+          name: Neveen-apk
+          path: Neveen.apk
           if-no-files-found: error
 
       - name: Publish Release with APK
@@ -45,7 +45,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete cashflow-latest --yes --cleanup-tag || true
-          gh release create cashflow-latest MonthlyCashflow.apk \
-            --title "Monthly Cashflow APK" \
-            --notes "Latest debug build of the Monthly Cashflow app. Download MonthlyCashflow.apk below and install it on your phone (allow install from unknown sources). Commit: ${GITHUB_SHA:0:7}" \
+          gh release create cashflow-latest Neveen.apk \
+            --title "Neveen APK" \
+            --notes "Latest debug build of the Neveen app. Download Neveen.apk below and install it on your phone (allow install from unknown sources). Commit: ${GITHUB_SHA:0:7}" \
             --target "${GITHUB_SHA}"
