@@ -136,7 +136,7 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const STORE = "cashflow.v4";   // bumped: reseeds trimmed wallets + DAD SY expense
+const STORE = "cashflow.v5";   // bumped: adds SY Ownership Transfer to August
 
 function defaultData(){
   const salary = () => ([
@@ -166,7 +166,8 @@ function defaultData(){
                                                       {label:"Bills", sar:1000},
                                                       {label:"Tabby", sar:1000},
                                                       {label:"Groceries", sar:1000},
-                                                      {label:"DAD SY", cur:"USD", amt:350}]},
+                                                      {label:"DAD SY", cur:"USD", amt:350},
+                                                      {label:"SY Ownership Transfer", cur:"USD", amt:1500}]},
       {key:"Sep-26", name:"September 2026",  inflows:salary(),
                                             outflows:[{label:"Court HSE", sar:20000},{label:"House rent", sar:43000},
                                                       {label:"DAD SY", cur:"USD", amt:350}]},
