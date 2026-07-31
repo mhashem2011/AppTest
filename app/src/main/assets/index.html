@@ -88,6 +88,7 @@
   .row .amt input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:8px;
     color:var(--text);font-size:14px;text-align:right;padding:8px;font-variant-numeric:tabular-nums}
   .row .usd{width:74px;text-align:right;font-size:11px;color:var(--usd);font-variant-numeric:tabular-nums}
+  .ialt{text-align:right;font-size:11px;color:var(--usd);font-variant-numeric:tabular-nums;padding:0 34px 4px 0}
   .row .del{width:26px;text-align:center;color:var(--out);opacity:.7;font-size:18px;cursor:pointer;background:none;border:none}
   .add{background:none;border:1px dashed var(--line);color:var(--muted);border-radius:8px;
     padding:9px;width:100%;margin-top:8px;font-size:13px;cursor:pointer}
@@ -135,7 +136,7 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const STORE = "cashflow.v3";   // bumped: reseeds with the real wallet list
+const STORE = "cashflow.v4";   // bumped: reseeds trimmed wallets + DAD SY expense
 
 function defaultData(){
   const salary = () => ([
@@ -147,15 +148,8 @@ function defaultData(){
     // its own currency; the SAR total is the opening balance for July.
     wallets: [
       {label:"Emirates NBD CC", cur:"SAR", amt:960.41},
-      {label:"Inma 000",        cur:"SAR", amt:899.38},
+      {label:"Inma 000",        cur:"SAR", amt:0},
       {label:"Meem CC",         cur:"SAR", amt:12113.32},
-      {label:"Inma 001",        cur:"SAR", amt:0},
-      {label:"IZ CC",           cur:"SAR", amt:324.97},
-      {label:"Inma SAVINGS",    cur:"SAR", amt:40.21},
-      {label:"RL Inma 002",     cur:"SAR", amt:267.75},
-      {label:"STC pay",         cur:"SAR", amt:109.64},
-      {label:"Meem Account",    cur:"SAR", amt:0},
-      {label:"Mobily Pay",      cur:"SAR", amt:0.05},
       {label:"Home SAR",        cur:"SAR", amt:75560},
       {label:"Home USD",        cur:"USD", amt:800},
       {label:"SY USD DD",       cur:"USD", amt:1550}
@@ -171,13 +165,15 @@ function defaultData(){
                                                       {label:"BMW X4", sar:3300},
                                                       {label:"Bills", sar:1000},
                                                       {label:"Tabby", sar:1000},
-                                                      {label:"Groceries", sar:1000}]},
+                                                      {label:"Groceries", sar:1000},
+                                                      {label:"DAD SY", cur:"USD", amt:350}]},
       {key:"Sep-26", name:"September 2026",  inflows:salary(),
-                                            outflows:[{label:"Court HSE", sar:20000},{label:"House rent", sar:43000}]},
-      {key:"Oct-26", name:"October 2026",   inflows:salary(), outflows:[]},
-      {key:"Nov-26", name:"November 2026",  inflows:salary(), outflows:[]},
-      {key:"Dec-26", name:"December 2026",  inflows:salary(), outflows:[]},
-      {key:"Jan-27", name:"January 2027",   inflows:salary(), outflows:[]}
+                                            outflows:[{label:"Court HSE", sar:20000},{label:"House rent", sar:43000},
+                                                      {label:"DAD SY", cur:"USD", amt:350}]},
+      {key:"Oct-26", name:"October 2026",   inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
+      {key:"Nov-26", name:"November 2026",  inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
+      {key:"Dec-26", name:"December 2026",  inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
+      {key:"Jan-27", name:"January 2027",   inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]}
     ]
   };
 }
@@ -205,11 +201,20 @@ function load(){
   return defaultData();
 }
 // SAR value of a wallet, converting USD-denominated ones at RATE.
-function walletSar(w){
-  const a = Number(w.amt)||0;
-  return w.cur==="USD" ? a*RATE : a;
+// SAR value of any entry (wallet or line item). Accepts the current
+// {cur, amt} shape and the legacy bare {sar} shape.
+function valSar(x){
+  if(!x) return 0;
+  const a = x.amt !== undefined ? (Number(x.amt)||0) : (Number(x.sar)||0);
+  return x.cur==="USD" ? a*RATE : a;
 }
-function walletsTotal(){ return (data.wallets||[]).reduce((t,w)=>t+walletSar(w),0); }
+// Native amount as entered, in the entry's own currency.
+function valAmt(x){
+  if(!x) return 0;
+  return x.amt !== undefined ? (Number(x.amt)||0) : (Number(x.sar)||0);
+}
+function walletSar(w){ return valSar(w); }
+function walletsTotal(){ return sum(data.wallets); }
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(data)); }catch(e){} }
 
 const fmt = n => Math.round(n).toLocaleString("en-US");
@@ -221,7 +226,7 @@ const fmtAmt = n => {
     : v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 };
 const usd = sar => "$" + Math.round(sar/RATE).toLocaleString("en-US");
-const sum = arr => arr.reduce((t,x)=> t + (Number(x.sar)||0), 0);
+const sum = arr => (arr||[]).reduce((t,x)=> t + valSar(x), 0);
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function parseNum(v){ return Number(String(v).replace(/[^0-9.-]/g,""))||0; }
 
@@ -398,21 +403,36 @@ function renderMonth(i){
 }
 
 function lineRow(mi,type,j,it){
+  const isUsd = it.cur==="USD";
+  // Show the counterpart currency, matching the wallet rows.
+  const alt = isUsd ? fmt(valSar(it))+" SAR" : usd(valSar(it));
   return `<div class="row">
     <div class="name"><input type="text" value="${escapeHtml(it.label)}"
         data-label="1" data-mi="${mi}" data-type="${type}" data-j="${j}" placeholder="Description"></div>
-    <div class="amt"><input type="text" inputmode="numeric" value="${fmt(it.sar)}"
+    <button class="wcur ${isUsd?'usdcur':''}" data-icur="1" data-mi="${mi}" data-type="${type}" data-j="${j}"
+        title="Tap to switch currency">${isUsd?"USD":"SAR"}</button>
+    <div class="amt"><input type="text" inputmode="decimal" value="${fmtAmt(valAmt(it))}"
         data-amt="1" data-mi="${mi}" data-type="${type}" data-j="${j}"></div>
-    <div class="usd">${usd(it.sar)}</div>
     <button class="del" data-del="1" data-mi="${mi}" data-type="${type}" data-j="${j}">&times;</button>
-  </div>`;
+  </div>
+  <div class="ialt">${alt}</div>`;
 }
 
 function bindMonth(){
   document.querySelectorAll("[data-amt]").forEach(el=>{
     el.addEventListener("change",()=>{
       const {mi,type,j}=el.dataset;
-      data.months[mi][type][j].sar=parseNum(el.value); save(); render();
+      const it=data.months[mi][type][j];
+      it.amt=parseNum(el.value); delete it.sar; save(); render();
+    });
+  });
+  document.querySelectorAll("[data-icur]").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const {mi,type,j}=el.dataset;
+      const it=data.months[mi][type][j];
+      if(it.amt===undefined){ it.amt=Number(it.sar)||0; delete it.sar; }
+      it.cur = it.cur==="USD" ? "SAR" : "USD";
+      save(); render();
     });
   });
   document.querySelectorAll("[data-label]").forEach(el=>{
