@@ -6,15 +6,17 @@
 <title>Monthly Cashflow</title>
 <style>
   :root{
-    --bg:#0e1116; --card:#161b22; --card2:#1c232d; --line:#2a323d;
-    --text:#e6edf3; --muted:#8b98a6; --accent:#3b82f6;
-    --in:#34d399; --out:#f87171; --gold:#fbbf24; --usd:#93c5fd;
+    --bg:#f4f6fa; --card:#ffffff; --card2:#eef2f8; --line:#dce3ec;
+    --text:#16202e; --muted:#66738a; --accent:#2563eb;
+    --in:#0e9f6e; --out:#dc2626; --gold:#a86612; --usd:#2563eb;
+    --herobg1:#e8f0fe; --herobg2:#dbe8fd; --heroline:#b9d1f7;
+    --herolbl:#2b5eb0; --herohint:#5b7fb8; --fieldbg:#ffffff;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;background:var(--bg);color:var(--text);
     font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
     padding:env(safe-area-inset-top) 0 96px 0;font-size:15px}
-  header{position:sticky;top:0;z-index:10;background:#0e1116f2;
+  header{position:sticky;top:0;z-index:10;background:#f4f6faf2;
     padding:12px 16px 10px;border-bottom:1px solid var(--line);backdrop-filter:blur(8px);
     display:flex;align-items:center;gap:10px}
   .back{background:var(--card2);border:1px solid var(--line);color:var(--text);
@@ -27,25 +29,30 @@
   main{padding:14px 16px}
 
   /* ---- Home ---- */
-  .hero{background:linear-gradient(135deg,#12233f,#0e1a2e);border:1px solid #26456f;
+  .hero{background:linear-gradient(135deg,var(--herobg1),var(--herobg2));border:1px solid var(--heroline);
     border-radius:18px;padding:18px 18px 16px;margin-bottom:14px}
-  .hero .hlbl{font-size:12px;color:#9fc0ea;text-transform:uppercase;letter-spacing:.6px}
+  .hero .hlbl{font-size:12px;color:var(--herolbl);text-transform:uppercase;letter-spacing:.6px}
   .hero .hrow{display:flex;align-items:baseline;gap:8px;margin-top:10px}
   .hero .htot{flex:1;min-width:0;color:var(--text);font-size:36px;font-weight:800;
     font-variant-numeric:tabular-nums}
   .hero .hcur{color:var(--muted);font-size:15px;font-weight:700}
   .hero .husd{color:var(--usd);font-size:14px;margin-top:4px}
-  .hero .hhint{color:#7fa3cf;font-size:11px;margin-top:10px}
-  .wallets{margin-top:14px;border-top:1px solid #2f5a8f;padding-top:6px}
-  .wrow{display:flex;align-items:center;gap:8px;padding:6px 0}
+  .hero .hhint{color:var(--herohint);font-size:11px;margin-top:10px}
+  .wallets{margin-top:14px;border-top:1px solid var(--heroline);padding-top:6px;
+    max-height:320px;overflow-y:auto}
+  .wrow{display:flex;align-items:center;gap:8px;padding:6px 0 0}
   .wrow .wname{flex:1;min-width:0;background:transparent;border:none;color:var(--text);
     font-size:14px;padding:4px 0;outline:none}
-  .wrow .wamt{width:104px;background:#0e1a2ecc;border:1px solid #2f5a8f;border-radius:8px;
+  .wrow .wcur{flex:0 0 auto;background:var(--fieldbg);border:1px solid var(--heroline);border-radius:7px;
+    color:var(--herolbl);font-size:10px;font-weight:700;letter-spacing:.4px;padding:5px 7px;cursor:pointer}
+  .wrow .wcur.usdcur{color:#ffffff;background:var(--usd);border-color:var(--usd)}
+  .wrow .wamt{width:96px;background:var(--fieldbg);border:1px solid var(--heroline);border-radius:8px;
     color:var(--text);font-size:14px;text-align:right;padding:7px 8px;
     font-variant-numeric:tabular-nums;outline:none}
-  .wrow .wusd{width:68px;text-align:right;font-size:11px;color:var(--usd);font-variant-numeric:tabular-nums}
-  .wempty{color:#7fa3cf;font-size:13px;padding:6px 0}
-  .wadd{border-color:#2f5a8f;color:#9fc0ea;margin-top:4px}
+  .walt{text-align:right;font-size:11px;color:var(--usd);font-variant-numeric:tabular-nums;
+    padding:1px 34px 5px 0;border-bottom:1px solid var(--heroline)}
+  .wempty{color:var(--herohint);font-size:13px;padding:6px 0}
+  .wadd{border-color:var(--heroline);color:var(--herolbl);margin-top:8px}
   .projcard{display:flex;justify-content:space-between;align-items:center;background:var(--card2);
     border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:18px}
   .projcard .k{font-size:12px;color:var(--muted)}
@@ -96,7 +103,7 @@
   .stat .k{color:var(--muted);font-size:13px}
   .stat .v{font-weight:700;font-size:16px;font-variant-numeric:tabular-nums}
   .stat .v .u{display:block;font-size:11px;color:var(--usd);font-weight:400;text-align:right}
-  .neveen{background:linear-gradient(135deg,#3a2f05,#241d02);border:1px solid #5b4a08;border-radius:14px;
+  .neveen{background:linear-gradient(135deg,#fdf3dc,#fae9c2);border:1px solid #e6cf94;border-radius:14px;
     padding:14px;margin-top:16px}
   .neveen .t{color:var(--gold);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
   .neveen .g{display:flex;justify-content:space-between;margin-top:8px;font-size:14px}
@@ -104,7 +111,7 @@
   .pos{color:var(--in)} .neg{color:var(--out)}
 
   /* ---- Bottom bar ---- */
-  .fab{position:fixed;left:0;right:0;bottom:0;background:#0e1116f2;border-top:1px solid var(--line);
+  .fab{position:fixed;left:0;right:0;bottom:0;background:#f4f6faf2;border-top:1px solid var(--line);
     padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;backdrop-filter:blur(8px)}
   .btn{flex:1;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:600;cursor:pointer}
   .btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
@@ -128,7 +135,7 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const STORE = "cashflow.v2";   // bumped: reseeds corrected plan (salary shift + 21,500 opening)
+const STORE = "cashflow.v3";   // bumped: reseeds with the real wallet list
 
 function defaultData(){
   const salary = () => ([
@@ -136,17 +143,35 @@ function defaultData(){
     {label:"SLRY Bank", sar:4500}
   ]);
   return {
-    // Funds available today, split into named wallets. Their total is the
-    // opening balance for the first month.
-    wallets: [ {label:"Cash on hand", sar:84230} ],
+    // Funds available today, split into named wallets. Each holds an amount in
+    // its own currency; the SAR total is the opening balance for July.
+    wallets: [
+      {label:"Emirates NBD CC", cur:"SAR", amt:960.41},
+      {label:"Inma 000",        cur:"SAR", amt:899.38},
+      {label:"Meem CC",         cur:"SAR", amt:12113.32},
+      {label:"Inma 001",        cur:"SAR", amt:0},
+      {label:"IZ CC",           cur:"SAR", amt:324.97},
+      {label:"Inma SAVINGS",    cur:"SAR", amt:40.21},
+      {label:"RL Inma 002",     cur:"SAR", amt:267.75},
+      {label:"STC pay",         cur:"SAR", amt:109.64},
+      {label:"Meem Account",    cur:"SAR", amt:0},
+      {label:"Mobily Pay",      cur:"SAR", amt:0.05},
+      {label:"Home SAR",        cur:"SAR", amt:75560},
+      {label:"Home USD",        cur:"USD", amt:800},
+      {label:"SY USD DD",       cur:"USD", amt:1550}
+    ],
     months: [
       // Salaries are received at the START of the following month, so each
       // month's inflow is the previous month's pay. July's salary and the BNS
       // bonus have already been received and sit inside the opening balance,
       // so July and August carry no salary inflow.
       {key:"Jul-26", name:"July 2026",      inflows:[], outflows:[]},
-      {key:"Aug-26", name:"August 2026",    inflows:[],
-                                            outflows:[{label:"Maid", sar:17700}]},
+      {key:"Aug-26", name:"August 2026",    inflows:[{label:"RL Maid payment", sar:10000}],
+                                            outflows:[{label:"Maid", sar:17700},
+                                                      {label:"Car (x4)", sar:13200},
+                                                      {label:"Bills", sar:1000},
+                                                      {label:"Tabby", sar:1000},
+                                                      {label:"Groceries", sar:1000}]},
       {key:"Sep-26", name:"September 2026",  inflows:salary(),
                                             outflows:[{label:"Court HSE", sar:20000},{label:"House rent", sar:43000}]},
       {key:"Oct-26", name:"October 2026",   inflows:salary(), outflows:[]},
@@ -167,18 +192,34 @@ function load(){
       const d = JSON.parse(s);
       // Migrate saved data from a single opening balance to named wallets.
       if(!Array.isArray(d.wallets)){
-        d.wallets = [{label:"Cash on hand", sar:Number(d.openingBalance)||0}];
+        d.wallets = [{label:"Cash on hand", cur:"SAR", amt:Number(d.openingBalance)||0}];
         delete d.openingBalance;
       }
+      // Migrate wallets that stored a bare SAR figure to {cur, amt}.
+      d.wallets = d.wallets.map(w=>
+        w && w.cur !== undefined ? w
+          : {label:(w&&w.label)||"", cur:"SAR", amt:Number(w&&w.sar)||0});
       return d;
     }
   }catch(e){}
   return defaultData();
 }
-function walletsTotal(){ return sum(data.wallets||[]); }
+// SAR value of a wallet, converting USD-denominated ones at RATE.
+function walletSar(w){
+  const a = Number(w.amt)||0;
+  return w.cur==="USD" ? a*RATE : a;
+}
+function walletsTotal(){ return (data.wallets||[]).reduce((t,w)=>t+walletSar(w),0); }
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(data)); }catch(e){} }
 
 const fmt = n => Math.round(n).toLocaleString("en-US");
+// Keeps cents when a wallet actually has them, so 0.05 doesn't display as 0.
+const fmtAmt = n => {
+  const v = Number(n)||0;
+  return Math.abs(v % 1) < 0.005
+    ? Math.round(v).toLocaleString("en-US")
+    : v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+};
 const usd = sar => "$" + Math.round(sar/RATE).toLocaleString("en-US");
 const sum = arr => arr.reduce((t,x)=> t + (Number(x.sar)||0), 0);
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
@@ -212,13 +253,19 @@ function renderHome(){
   document.getElementById("hTitle").textContent = "Monthly Cashflow";
   document.getElementById("hSub").innerHTML = "Jul 2026 – Jan 2027 &middot; 1 USD = 3.75 SAR";
 
-  const walletRows = (data.wallets||[]).map((w,k)=>`
+  const walletRows = (data.wallets||[]).map((w,k)=>{
+    const isUsd = w.cur==="USD";
+    // Show the counterpart currency: SAR wallets show USD, USD wallets show SAR.
+    const alt = isUsd ? fmt(walletSar(w))+" SAR" : usd(walletSar(w));
+    return `
     <div class="wrow">
       <input class="wname" type="text" value="${escapeHtml(w.label)}" data-wlabel="${k}" placeholder="Wallet name">
-      <input class="wamt" type="text" inputmode="numeric" value="${fmt(w.sar)}" data-wamt="${k}">
-      <span class="wusd">${usd(w.sar)}</span>
+      <button class="wcur ${isUsd?'usdcur':''}" data-wcur="${k}" title="Tap to switch currency">${isUsd?"USD":"SAR"}</button>
+      <input class="wamt" type="text" inputmode="decimal" value="${fmtAmt(w.amt)}" data-wamt="${k}">
       <button class="del" data-wdel="${k}">&times;</button>
-    </div>`).join("");
+    </div>
+    <div class="walt">${alt}</div>`;
+  }).join("");
 
   const head = `
     <div class="hero">
@@ -260,7 +307,14 @@ function renderHome(){
 
   document.querySelectorAll("[data-wamt]").forEach(el=>{
     el.addEventListener("change",()=>{
-      data.wallets[+el.dataset.wamt].sar = parseNum(el.value); save(); render();
+      data.wallets[+el.dataset.wamt].amt = parseNum(el.value); save(); render();
+    });
+  });
+  document.querySelectorAll("[data-wcur]").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const w = data.wallets[+el.dataset.wcur];
+      w.cur = w.cur==="USD" ? "SAR" : "USD";
+      save(); render();
     });
   });
   document.querySelectorAll("[data-wlabel]").forEach(el=>{
@@ -275,7 +329,7 @@ function renderHome(){
   });
   const addW = document.querySelector("[data-wadd]");
   if(addW) addW.addEventListener("click",()=>{
-    (data.wallets = data.wallets||[]).push({label:"",sar:0}); save(); render();
+    (data.wallets = data.wallets||[]).push({label:"",cur:"SAR",amt:0}); save(); render();
   });
   document.querySelectorAll("[data-open]").forEach(el=>{
     el.addEventListener("click",()=>{ view=+el.dataset.open; scrollTo(0,0); render(); });

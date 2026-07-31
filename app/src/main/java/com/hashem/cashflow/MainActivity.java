@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
         s.setDatabaseEnabled(true);
         s.setSupportZoom(false);
         web.setWebViewClient(new WebViewClient());
-        web.setBackgroundColor(0xFF0E1116);
+        web.setBackgroundColor(0xFFF4F6FA);
 
         setContentView(web);
         web.loadUrl("file:///android_asset/index.html");
