@@ -141,7 +141,11 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const STORE = "cashflow.v5";   // bumped: adds SY Ownership Transfer to August
+const APP_VERSION = "2.3";
+const STORE = "cashflow.v5";
+// Older keys, newest first. Data saved by any previous build is adopted if the
+// current key is empty, so an update can never strand your figures.
+const LEGACY_STORES = ["cashflow.v4","cashflow.v3","cashflow.v2","cashflow.v1"];
 
 function defaultData(){
   const salary = () => ([
@@ -189,7 +193,13 @@ let view = "home";   // "home" or a month index (0..n)
 
 function load(){
   try{
-    const s = localStorage.getItem(STORE);
+    let s = localStorage.getItem(STORE);
+    if(!s){                                   // adopt the newest previous save
+      for(const k of LEGACY_STORES){
+        const old = localStorage.getItem(k);
+        if(old){ s = old; break; }
+      }
+    }
     if(s){
       const d = JSON.parse(s);
       // Migrate saved data from a single opening balance to named wallets.
@@ -294,7 +304,7 @@ function renderHome(){
 
   document.getElementById("hdr").classList.remove("sub");
   document.getElementById("hTitle").textContent = "Neveen";
-  document.getElementById("hSub").innerHTML = "Jul 2026 – Jan 2027 &middot; 1 USD = 3.75 SAR";
+  document.getElementById("hSub").innerHTML = "Jul 2026 – Jan 2027 &middot; 1 USD = 3.75 SAR &middot; v" + APP_VERSION;
 
   const walletRows = (data.wallets||[]).map((w,k)=>{
     const isUsd = w.cur==="USD";
