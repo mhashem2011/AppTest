@@ -29,6 +29,13 @@
   main{padding:14px 16px}
 
   /* ---- Home ---- */
+  .est{background:linear-gradient(135deg,#17335f,#0e2145);border-radius:18px;
+    padding:18px 18px 16px;margin-bottom:14px;color:#fff}
+  .est .estlbl{font-size:12px;color:#9dc0ec;text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+  .est .estval{font-size:42px;font-weight:800;line-height:1.05;margin-top:8px;font-variant-numeric:tabular-nums}
+  .est .estval span{font-size:15px;font-weight:700;color:#9dc0ec;margin-left:8px;letter-spacing:.5px}
+  .est .estusd{font-size:14px;color:#c3daf8;margin-top:3px}
+  .est .esthint{font-size:11px;color:#8aabd8;margin-top:12px}
   .hero{background:linear-gradient(135deg,var(--herobg1),var(--herobg2));border:1px solid var(--heroline);
     border-radius:18px;padding:18px 18px 16px;margin-bottom:14px}
   .hero .hlbl{font-size:12px;color:var(--herolbl);text-transform:uppercase;letter-spacing:.6px}
@@ -141,11 +148,15 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const APP_VERSION = "2.3";
+const APP_VERSION = "2.4";
 const STORE = "cashflow.v5";
 // Older keys, newest first. Data saved by any previous build is adopted if the
 // current key is empty, so an update can never strand your figures.
 const LEGACY_STORES = ["cashflow.v4","cashflow.v3","cashflow.v2","cashflow.v1"];
+// Calendar position of each month, used to pick "today" and to backfill saves
+// made before months carried their own year/month.
+const MONTH_META = {"Jul-26":[2026,7],"Aug-26":[2026,8],"Sep-26":[2026,9],"Oct-26":[2026,10],
+                    "Nov-26":[2026,11],"Dec-26":[2026,12],"Jan-27":[2027,1]};
 
 function defaultData(){
   const salary = () => ([
@@ -168,22 +179,23 @@ function defaultData(){
       // month's inflow is the previous month's pay. July's salary and the BNS
       // bonus have already been received and sit inside the opening balance,
       // so July and August carry no salary inflow.
-      {key:"Jul-26", name:"July 2026",      inflows:[], outflows:[]},
-      {key:"Aug-26", name:"August 2026",    inflows:[{label:"RL Maid payment", sar:10000}],
+      {key:"Jul-26", y:2026, m:7, name:"July 2026",      inflows:[], outflows:[]},
+      {key:"Aug-26", y:2026, m:8,  name:"August 2026",    inflows:[{label:"RL Maid payment", sar:10000}],
                                             outflows:[{label:"Maid", sar:17700},
                                                       {label:"BMW X4", sar:3300},
                                                       {label:"Bills", sar:1000},
                                                       {label:"Tabby", sar:1000},
                                                       {label:"Groceries", sar:1000},
                                                       {label:"DAD SY", cur:"USD", amt:350},
-                                                      {label:"SY Ownership Transfer", cur:"USD", amt:1500}]},
-      {key:"Sep-26", name:"September 2026",  inflows:salary(),
+                                                      {label:"House malieh + 100 shoosh", cur:"USD", amt:900},
+                                                      {label:"Taym latif kids 2 weeks", sar:1200}]},
+      {key:"Sep-26", y:2026, m:9, name:"September 2026",  inflows:salary(),
                                             outflows:[{label:"Court HSE", sar:20000},{label:"House rent", sar:43000},
                                                       {label:"DAD SY", cur:"USD", amt:350}]},
-      {key:"Oct-26", name:"October 2026",   inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
-      {key:"Nov-26", name:"November 2026",  inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
-      {key:"Dec-26", name:"December 2026",  inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
-      {key:"Jan-27", name:"January 2027",   inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]}
+      {key:"Oct-26", y:2026, m:10, name:"October 2026",   inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
+      {key:"Nov-26", y:2026, m:11, name:"November 2026",  inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
+      {key:"Dec-26", y:2026, m:12, name:"December 2026",  inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
+      {key:"Jan-27", y:2027, m:1, name:"January 2027",   inflows:salary(), outflows:[{label:"DAD SY", cur:"USD", amt:350}]}
     ]
   };
 }
@@ -207,6 +219,12 @@ function load(){
         d.wallets = [{label:"Cash on hand", cur:"SAR", amt:Number(d.openingBalance)||0}];
         delete d.openingBalance;
       }
+      // Backfill calendar fields on months saved by older builds.
+      if(Array.isArray(d.months)) d.months.forEach(mo=>{
+        if(mo && mo.y===undefined && MONTH_META[mo.key]){
+          mo.y = MONTH_META[mo.key][0]; mo.m = MONTH_META[mo.key][1];
+        }
+      });
       // Migrate wallets that stored a bare SAR figure to {cur, amt}.
       d.wallets = d.wallets.map(w=>
         w && w.cur !== undefined ? w
@@ -289,6 +307,16 @@ function compute(){
   });
 }
 
+// Index of the month covering today, clamped to the ends of the plan.
+function currentMonthIndex(){
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth()+1;
+  const ms = data.months;
+  const hit = ms.findIndex(mo => mo.y===y && mo.m===m);
+  if(hit >= 0) return hit;
+  const before = (y < ms[0].y) || (y===ms[0].y && m < ms[0].m);
+  return before ? 0 : ms.length-1;
+}
+
 function render(){
   if(view==="home") renderHome(); else renderMonth(view);
 }
@@ -320,7 +348,16 @@ function renderHome(){
     <div class="walt">${alt}</div>`;
   }).join("");
 
+  const ci = currentMonthIndex();
+  const cm = data.months[ci], cc = calc[ci];
+
   const head = `
+    <div class="est">
+      <div class="estlbl">Estimated in hand today</div>
+      <div class="estval">${fmt(cc.closing)}<span>SAR</span></div>
+      <div class="estusd">${usd(cc.closing)}</div>
+      <div class="esthint">${cm.name}: opening ${fmt(cc.opening)} + in ${fmt(cc.inf)} &minus; out ${fmt(cc.outf)}</div>
+    </div>
     <div class="hero">
       <div class="hlbl">Funds available today</div>
       <div class="hrow">
