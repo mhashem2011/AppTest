@@ -149,9 +149,12 @@
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
 const APP_VERSION = "2.5";
-const STORE = "cashflow.v5";
+const STORE = "cashflow.v6";
 // Older keys, newest first. Data saved by any previous build is adopted if the
 // current key is empty, so an update can never strand your figures.
+// v5 is deliberately excluded: the v2.5 defaults below are a full resync of
+// wallets/months, and should load fresh rather than being masked by old
+// v2.0-2.4 saved edits.
 const LEGACY_STORES = ["cashflow.v4","cashflow.v3","cashflow.v2","cashflow.v1"];
 // Calendar position of each month, used to pick "today" and to backfill saves
 // made before months carried their own year/month.
