@@ -148,10 +148,10 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const APP_VERSION = "3.2";
-const STORE = "cashflow.v9";
-// Older keys, newest first. v5-v8 are excluded on purpose: this is a
-// deliberate reset to a new wallet snapshot and must load fresh.
+const APP_VERSION = "3.3";
+const STORE = "cashflow.v10";
+// Older keys, newest first. v5-v9 are excluded on purpose: the reset plus
+// this flow fill-in must load fresh, not be masked by saved data.
 const LEGACY_STORES = ["cashflow.v4","cashflow.v3","cashflow.v2","cashflow.v1"];
 // Calendar position of each month, used to pick "today" and to backfill saves
 // made before months carried their own year/month.
@@ -159,6 +159,10 @@ const MONTH_META = {"Aug-26":[2026,8],"Sep-26":[2026,9],"Oct-26":[2026,10],
                     "Nov-26":[2026,11],"Dec-26":[2026,12],"Jan-27":[2027,1]};
 
 function defaultData(){
+  const salary = () => ([
+    {label:"SLRY CS",   sar:12000},
+    {label:"SLRY Bank", sar:4500}
+  ]);
   return {
     // Funds available today, split into named wallets. Each holds an amount in
     // its own currency; the SAR total is the opening balance for August.
@@ -177,15 +181,27 @@ function defaultData(){
       {label:"Home USD",        cur:"USD", amt:4400},
       {label:"SY USD DD",       cur:"USD", amt:1266}
     ],
-    // Plan runs August 2026 - January 2027. Income/expenses intentionally
-    // left empty, pending the new figures.
+    // Plan runs August 2026 - January 2027, per the latest month screenshots.
     months: [
-      {key:"Aug-26", y:2026, m:8,  name:"August 2026",    inflows:[], outflows:[]},
-      {key:"Sep-26", y:2026, m:9,  name:"September 2026", inflows:[], outflows:[]},
-      {key:"Oct-26", y:2026, m:10, name:"October 2026",   inflows:[], outflows:[]},
-      {key:"Nov-26", y:2026, m:11, name:"November 2026",  inflows:[], outflows:[]},
-      {key:"Dec-26", y:2026, m:12, name:"December 2026",  inflows:[], outflows:[]},
-      {key:"Jan-27", y:2027, m:1,  name:"January 2027",   inflows:[], outflows:[]}
+      {key:"Aug-26", y:2026, m:8,  name:"August 2026",    inflows:[],
+                                            outflows:[{label:"Groceries", sar:500}]},
+      {key:"Sep-26", y:2026, m:9,  name:"September 2026", inflows:salary(),
+                                            outflows:[{label:"House rent", sar:43000},
+                                                      {label:"DAD SY", cur:"USD", amt:350},
+                                                      {label:"Nas Tabby", sar:817.93},
+                                                      {label:"Slry cut insurance and attest", sar:800}]},
+      {key:"Oct-26", y:2026, m:10, name:"October 2026",   inflows:salary(),
+                                            outflows:[{label:"DAD SY", cur:"USD", amt:350},
+                                                      {label:"Nas Tabby", sar:817.93}]},
+      {key:"Nov-26", y:2026, m:11, name:"November 2026",  inflows:salary(),
+                                            outflows:[{label:"DAD SY", cur:"USD", amt:350},
+                                                      {label:"Maid", sar:5100},
+                                                      {label:"Nas Tabby", sar:817.93},
+                                                      {label:"Car Subwoofer System?", sar:5000}]},
+      {key:"Dec-26", y:2026, m:12, name:"December 2026",  inflows:salary(),
+                                            outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
+      {key:"Jan-27", y:2027, m:1,  name:"January 2027",   inflows:salary(),
+                                            outflows:[{label:"DAD SY", cur:"USD", amt:350}]}
     ]
   };
 }
