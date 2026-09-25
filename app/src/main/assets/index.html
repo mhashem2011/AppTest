@@ -138,7 +138,7 @@
   <button class="back" id="backBtn">&#8592;</button>
   <div class="htitle">
     <h1 id="hTitle">Neveen</h1>
-    <div class="sub" id="hSub">Aug 2026 – Jan 2027 &middot; 1 USD = 3.75 SAR</div>
+    <div class="sub" id="hSub">Sep 2026 – Jan 2027 &middot; 1 USD = 3.75 SAR</div>
   </div>
 </header>
 
@@ -148,14 +148,14 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const APP_VERSION = "3.3";
-const STORE = "cashflow.v10";
-// Older keys, newest first. v5-v9 are excluded on purpose: the reset plus
-// this flow fill-in must load fresh, not be masked by saved data.
+const APP_VERSION = "3.4";
+const STORE = "cashflow.v11";
+// Older keys, newest first. v5-v10 are excluded on purpose: this reset
+// (new wallets, plan restarted at September) must load fresh.
 const LEGACY_STORES = ["cashflow.v4","cashflow.v3","cashflow.v2","cashflow.v1"];
 // Calendar position of each month, used to pick "today" and to backfill saves
 // made before months carried their own year/month.
-const MONTH_META = {"Aug-26":[2026,8],"Sep-26":[2026,9],"Oct-26":[2026,10],
+const MONTH_META = {"Sep-26":[2026,9],"Oct-26":[2026,10],
                     "Nov-26":[2026,11],"Dec-26":[2026,12],"Jan-27":[2027,1]};
 
 function defaultData(){
@@ -165,27 +165,27 @@ function defaultData(){
   ]);
   return {
     // Funds available today, split into named wallets. Each holds an amount in
-    // its own currency; the SAR total is the opening balance for August.
+    // its own currency; the SAR total is the opening balance for September.
     wallets: [
-      {label:"Emirates NBD CC", cur:"SAR", amt:4263.60},
-      {label:"Inma 000",        cur:"SAR", amt:356.37},
-      {label:"Meem CC",         cur:"SAR", amt:2933.97},
+      {label:"Emirates NBD CC", cur:"SAR", amt:2004.63},
+      {label:"Inma 000",        cur:"SAR", amt:100},
+      {label:"Meem CC",         cur:"SAR", amt:118.17},
       {label:"Inma 001",        cur:"SAR", amt:0},
-      {label:"IZ CC",           cur:"SAR", amt:155.80},
+      {label:"IZ CC",           cur:"SAR", amt:143.44},
       {label:"Inma SAVINGS",    cur:"SAR", amt:0},
-      {label:"RL Inma 002",     cur:"SAR", amt:267.75},
-      {label:"STC pay",         cur:"SAR", amt:130.74},
+      {label:"RL Inma 002",     cur:"SAR", amt:82.97},
+      {label:"STC pay",         cur:"SAR", amt:129.59},
       {label:"Meem Account",    cur:"SAR", amt:0},
       {label:"Mobily Pay",      cur:"SAR", amt:0.05},
-      {label:"Home SAR",        cur:"SAR", amt:29930},
+      {label:"Home SAR",        cur:"SAR", amt:28730},
       {label:"Home USD",        cur:"USD", amt:4400},
-      {label:"SY USD DD",       cur:"USD", amt:1266}
+      {label:"SY USD DD",       cur:"USD", amt:916}
     ],
-    // Plan runs August 2026 - January 2027, per the latest month screenshots.
+    // Plan runs September 2026 - January 2027. August has passed, so the
+    // wallet total is September's opening balance.
     months: [
-      {key:"Aug-26", y:2026, m:8,  name:"August 2026",    inflows:[],
-                                            outflows:[{label:"Groceries", sar:500}]},
-      {key:"Sep-26", y:2026, m:9,  name:"September 2026", inflows:salary(),
+      {key:"Sep-26", y:2026, m:9,  name:"September 2026", inflows:[...salary(),
+                                                      {label:"Aug slry cs pending", sar:12000}],
                                             outflows:[{label:"House rent", sar:43000},
                                                       {label:"DAD SY", cur:"USD", amt:350},
                                                       {label:"Nas Tabby", sar:817.93},
@@ -195,9 +195,7 @@ function defaultData(){
                                                       {label:"Nas Tabby", sar:817.93}]},
       {key:"Nov-26", y:2026, m:11, name:"November 2026",  inflows:salary(),
                                             outflows:[{label:"DAD SY", cur:"USD", amt:350},
-                                                      {label:"Maid", sar:5100},
-                                                      {label:"Nas Tabby", sar:817.93},
-                                                      {label:"Car Subwoofer System?", sar:5000}]},
+                                                      {label:"Nas Tabby", sar:817.93}]},
       {key:"Dec-26", y:2026, m:12, name:"December 2026",  inflows:salary(),
                                             outflows:[{label:"DAD SY", cur:"USD", amt:350}]},
       {key:"Jan-27", y:2027, m:1,  name:"January 2027",   inflows:salary(),
@@ -338,7 +336,7 @@ function renderHome(){
 
   document.getElementById("hdr").classList.remove("sub");
   document.getElementById("hTitle").textContent = "Neveen";
-  document.getElementById("hSub").innerHTML = "Aug 2026 – Jan 2027 &middot; 1 USD = 3.75 SAR &middot; v" + APP_VERSION;
+  document.getElementById("hSub").innerHTML = "Sep 2026 – Jan 2027 &middot; 1 USD = 3.75 SAR &middot; v" + APP_VERSION;
 
   const walletRows = (data.wallets||[]).map((w,k)=>{
     const isUsd = w.cur==="USD";
