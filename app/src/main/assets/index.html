@@ -95,6 +95,13 @@
   .row .amt input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:8px;
     color:var(--text);font-size:14px;text-align:right;padding:8px;font-variant-numeric:tabular-nums}
   .row .usd{width:74px;text-align:right;font-size:11px;color:var(--usd);font-variant-numeric:tabular-nums}
+  .chk{flex:0 0 auto;width:26px;height:26px;border-radius:7px;border:1.5px solid var(--line);
+    background:var(--fieldbg);color:transparent;font-size:14px;line-height:1;cursor:pointer;padding:0;
+    display:flex;align-items:center;justify-content:center}
+  .chk.on{background:var(--in);border-color:var(--in);color:#fff}
+  .row.done .name input{text-decoration:line-through;color:var(--muted)}
+  .row.done .amt input{color:var(--muted)}
+  .row.done .wcur{opacity:.5}
   .ialt{text-align:right;font-size:11px;color:var(--usd);font-variant-numeric:tabular-nums;padding:0 34px 4px 0}
   .row .del{width:26px;text-align:center;color:var(--out);opacity:.7;font-size:18px;cursor:pointer;background:none;border:none}
   .add{background:none;border:1px dashed var(--line);color:var(--muted);border-radius:8px;
@@ -148,8 +155,8 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const APP_VERSION = "MH10.1";
-const STORE = "cashflow.v13";
+const APP_VERSION = "MH10.2";
+const STORE = "cashflow.v14";
 // Older keys, newest first. v5-v11 are excluded on purpose: this reset
 // (new wallets, plan restarted at October) must load fresh.
 const LEGACY_STORES = ["cashflow.v4","cashflow.v3","cashflow.v2","cashflow.v1"];
@@ -184,10 +191,13 @@ function defaultData(){
     // Plan runs October 2026 - January 2027. September has passed, so the
     // wallet total is October's opening balance.
     months: [
-      // October's salary and expenses have already happened, so they are
-      // already inside the wallet total above. Leaving the month empty keeps
-      // "estimated in hand today" correct and avoids double-counting.
-      {key:"Oct-26", y:2026, m:10, name:"October 2026",   inflows:[], outflows:[]},
+      // October already happened: its items are kept for the record but ticked
+      // done, so they do not count again on top of the wallet total above.
+      {key:"Oct-26", y:2026, m:10, name:"October 2026",
+                                            inflows:[{label:"SLRY CS", sar:12000, done:true},
+                                                     {label:"SLRY Bank", sar:4500, done:true}],
+                                            outflows:[{label:"DAD SY", cur:"USD", amt:350, done:true},
+                                                      {label:"Nas Tabby", sar:817.93, done:true}]},
       {key:"Nov-26", y:2026, m:11, name:"November 2026",  inflows:salary(),
                                             outflows:[{label:"DAD SY", cur:"USD", amt:350},
                                                       {label:"Nas Tabby", sar:817.93}]},
@@ -292,13 +302,17 @@ const fmtAmt = n => {
 };
 const usd = sar => "$" + Math.round(sar/RATE).toLocaleString("en-US");
 const sum = arr => (arr||[]).reduce((t,x)=> t + valSar(x), 0);
+// Items ticked as already received/paid are part of the wallet total already,
+// so they must not count again toward the forward projection.
+const sumActive = arr => (arr||[]).reduce((t,x)=> t + (x && x.done ? 0 : valSar(x)), 0);
+const sumDone   = arr => (arr||[]).reduce((t,x)=> t + (x && x.done ? valSar(x) : 0), 0);
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function parseNum(v){ return Number(String(v).replace(/[^0-9.-]/g,""))||0; }
 
 function compute(){
   let opening = walletsTotal();
   return data.months.map(m=>{
-    const inf = sum(m.inflows), outf = sum(m.outflows);
+    const inf = sumActive(m.inflows), outf = sumActive(m.outflows);
     const net = inf - outf, closing = opening + net;
     const r = {opening, inf, outf, net, closing};
     opening = closing;
@@ -446,12 +460,14 @@ function renderMonth(i){
   document.getElementById("main").innerHTML = `
     <div class="card">${openingBlock}</div>
     <div class="sec inflow">
-      <div class="stitle"><span>Inflows</span><span>+${fmt(c.inf)} &middot; ${usd(c.inf)}</span></div>
+      <div class="stitle"><span>Inflows</span><span>+${fmt(c.inf)} &middot; ${usd(c.inf)}${
+        sumDone(m.inflows) ? ' <small style="opacity:.7">&middot; '+fmt(sumDone(m.inflows))+' received</small>' : ''}</span></div>
       <div class="card">${inRows || '<div style="color:var(--muted);font-size:13px;padding:6px 0">No inflows</div>'}
         <button class="add" data-add="${i}" data-type="inflows">+ Add inflow</button></div>
     </div>
     <div class="sec outflow">
-      <div class="stitle"><span>Outflows</span><span>-${fmt(c.outf)} &middot; ${usd(c.outf)}</span></div>
+      <div class="stitle"><span>Outflows</span><span>-${fmt(c.outf)} &middot; ${usd(c.outf)}${
+        sumDone(m.outflows) ? ' <small style="opacity:.7">&middot; '+fmt(sumDone(m.outflows))+' paid</small>' : ''}</span></div>
       <div class="card">${outRows || '<div style="color:var(--muted);font-size:13px;padding:6px 0">No outflows</div>'}
         <button class="add" data-add="${i}" data-type="outflows">+ Add outflow</button></div>
     </div>
@@ -483,7 +499,9 @@ function lineRow(mi,type,j,it){
   const isUsd = it.cur==="USD";
   // Show the counterpart currency, matching the wallet rows.
   const alt = isUsd ? fmt(valSar(it))+" SAR" : usd(valSar(it));
-  return `<div class="row">
+  return `<div class="row${it.done?' done':''}">
+    <button class="chk${it.done?' on':''}" data-done="1" data-mi="${mi}" data-type="${type}" data-j="${j}"
+        title="${it.done?'Already happened - tap to undo':'Mark as already received/paid'}">&#10003;</button>
     <div class="name"><input type="text" value="${escapeHtml(it.label)}"
         data-label="1" data-mi="${mi}" data-type="${type}" data-j="${j}" placeholder="Description"></div>
     <button class="wcur ${isUsd?'usdcur':''}" data-icur="1" data-mi="${mi}" data-type="${type}" data-j="${j}"
@@ -502,6 +520,14 @@ function bindMonth(){
       const it=data.months[mi][type][j];
       it.amt=parseNum(v); delete it.sar;
     }, true);
+  });
+  document.querySelectorAll("[data-done]").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const {mi,type,j}=el.dataset;
+      const it=data.months[mi][type][j];
+      it.done = !it.done;
+      save(); render();
+    });
   });
   document.querySelectorAll("[data-icur]").forEach(el=>{
     el.addEventListener("click",()=>{
