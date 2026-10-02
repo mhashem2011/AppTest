@@ -148,8 +148,8 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const APP_VERSION = "MH10.0";
-const STORE = "cashflow.v12";
+const APP_VERSION = "MH10.1";
+const STORE = "cashflow.v13";
 // Older keys, newest first. v5-v11 are excluded on purpose: this reset
 // (new wallets, plan restarted at October) must load fresh.
 const LEGACY_STORES = ["cashflow.v4","cashflow.v3","cashflow.v2","cashflow.v1"];
@@ -184,9 +184,10 @@ function defaultData(){
     // Plan runs October 2026 - January 2027. September has passed, so the
     // wallet total is October's opening balance.
     months: [
-      {key:"Oct-26", y:2026, m:10, name:"October 2026",   inflows:salary(),
-                                            outflows:[{label:"DAD SY", cur:"USD", amt:350},
-                                                      {label:"Nas Tabby", sar:817.93}]},
+      // October's salary and expenses have already happened, so they are
+      // already inside the wallet total above. Leaving the month empty keeps
+      // "estimated in hand today" correct and avoids double-counting.
+      {key:"Oct-26", y:2026, m:10, name:"October 2026",   inflows:[], outflows:[]},
       {key:"Nov-26", y:2026, m:11, name:"November 2026",  inflows:salary(),
                                             outflows:[{label:"DAD SY", cur:"USD", amt:350},
                                                       {label:"Nas Tabby", sar:817.93}]},
