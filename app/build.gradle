@@ -10,8 +10,8 @@ android {
         applicationId "com.hashem.cashflow"
         minSdk 24
         targetSdk 34
-        versionCode 26
-        versionName "MH15"
+        versionCode 27
+        versionName "MH16"
     }
 
     signingConfigs {
