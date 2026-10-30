@@ -155,9 +155,9 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const APP_VERSION = "MH18";
-const STORE = "cashflow.v17";
-// Older keys, newest first. v5-v11 are excluded on purpose: this reset
+const APP_VERSION = "MH19";
+const STORE = "cashflow.v18";
+// Older keys, newest first. v5-v17 are excluded on purpose: this reset
 // (new wallets, plan restarted at November) must load fresh.
 const LEGACY_STORES = ["cashflow.v4","cashflow.v3","cashflow.v2","cashflow.v1"];
 // Calendar position of each month, used to pick "today" and to backfill saves
@@ -184,20 +184,20 @@ function defaultData(){
     // Funds available today, split into named wallets. Each holds an amount in
     // its own currency; the SAR total is the opening balance for November.
     wallets: [
-      {label:"Emirates NBD CC", cur:"SAR", amt:725.59},
-      {label:"Inma 000",        cur:"SAR", amt:11100.86},
-      {label:"Meem CC",         cur:"SAR", amt:9570.46},
+      {label:"Emirates NBD CC", cur:"SAR", amt:510.59},
+      {label:"Inma 000",        cur:"SAR", amt:5486.69},
+      {label:"Meem CC",         cur:"SAR", amt:10570.46},
       {label:"Inma 001",        cur:"SAR", amt:0},
       {label:"IZ CC",           cur:"SAR", amt:29.72},
-      {label:"Inma SAVINGS",    cur:"SAR", amt:30},
-      {label:"RL Inma 002",     cur:"SAR", amt:166.52},
+      {label:"Inma SAVINGS",    cur:"SAR", amt:50},
+      {label:"RL Inma 002",     cur:"SAR", amt:100},
       {label:"STC pay",         cur:"SAR", amt:78.44},
       {label:"Mobily Pay",      cur:"SAR", amt:0.05},
       {label:"Home SAR",        cur:"SAR", amt:0},
       {label:"Home USD",        cur:"USD", amt:260},
       {label:"SY USD Aya",      cur:"USD", amt:8916},
       {label:"SY USD DD",       cur:"USD", amt:0},
-      {label:"Current fund",    cur:"SAR", amt:1600}
+      {label:"Physical wallet", cur:"SAR", amt:1000}
     ],
     // Plan runs November 2026 - January 2027. Each month's flows land on the
     // 1st; the wallet total is November's opening balance. November's salary
@@ -205,14 +205,11 @@ function defaultData(){
     months: [
       {key:"Nov-26", y:2026, m:11, name:"November 2026",
                                             inflows:[{label:"Alaa Aya Give", cur:"USD", amt:2000}],
-                                            outflows:[{label:"Nas Tabby", sar:817.93},
-                                                      {label:"Nas Tamara Sy Fmly", sar:400},
-                                                      {label:"Car", sar:3296.12},
-                                                      {label:"Bills", sar:1000},
+                                            outflows:[{label:"Bills", sar:1000},
                                                       {label:"Grocery", sar:1500},
-                                                      {label:"Cigs & Iqos", sar:1000},
+                                                      {label:"Cigs & Iqos", sar:400},
                                                       {label:"Natoor", sar:300},
-                                                      {label:"Fuel", sar:400}]},
+                                                      {label:"Fuel", sar:200}]},
       {key:"Dec-26", y:2026, m:12, name:"December 2026",  inflows:salary(),
                                             outflows:[{label:"DAD SY", cur:"USD", amt:350},
                                                       {label:"Nas Tamara Sy Fmly", sar:400},
