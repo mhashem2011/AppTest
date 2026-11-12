@@ -155,7 +155,7 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const APP_VERSION = "MH21";
+const APP_VERSION = "MH22";
 const STORE = "cashflow.v20";
 // Older keys, newest first. v5-v19 are excluded on purpose: this reset
 // (new wallets, plan restarted at November) must load fresh.
@@ -178,7 +178,9 @@ function defaultData(){
     {label:"RL 1K",   sar:1000},
     {label:"Cigs & Iqos", sar:1800},
     {label:"Natoor",  sar:300},
-    {label:"Fuel",    sar:400}
+    {label:"Fuel",    sar:400},
+    {label:"Shein",   sar:168.61},
+    {label:"Trendyol", sar:195.69}
   ]);
   return {
     // Funds available today, split into named wallets. Each holds an amount in
@@ -222,11 +224,14 @@ function defaultData(){
 
 // One-time changes to saved data, applied by id so they run once per device.
 // New items go in through here, not by bumping STORE, so live edits survive.
-// Appends a monthly outflow to every saved month, unless one with the same
-// name (ignoring case and spaces at the ends) is already there.
-function addMonthlyOutflow(label, sar){
+// Appends a monthly outflow to every saved month (or only from [y, m] on, if
+// given), unless one with the same name (ignoring case and spaces at the ends)
+// is already there.
+function addMonthlyOutflow(label, sar, from){
   const key = label.trim().toLowerCase();
   return d => (d.months||[]).forEach(mo=>{
+    const ym = MONTH_META[mo.key] || [mo.y, mo.m];
+    if(from && ym[0]*12+ym[1] < from[0]*12+from[1]) return;
     mo.outflows = mo.outflows || [];
     const has = mo.outflows.some(x=>String(x&&x.label||"").trim().toLowerCase()===key);
     if(!has) mo.outflows.push({label, sar});
@@ -234,7 +239,9 @@ function addMonthlyOutflow(label, sar){
 }
 const DATA_MIGRATIONS = [
   {id:"add-rl1k",       run:addMonthlyOutflow("RL 1K", 1000)},
-  {id:"add-cigs-iqos",  run:addMonthlyOutflow("Cigs & Iqos", 1800)}
+  {id:"add-cigs-iqos",  run:addMonthlyOutflow("Cigs & Iqos", 1800)},
+  {id:"add-shein",      run:addMonthlyOutflow("Shein", 168.61, [2026,12])},
+  {id:"add-trendyol",   run:addMonthlyOutflow("Trendyol", 195.69, [2026,12])}
 ];
 function applyDataMigrations(d){
   d.migrations = Array.isArray(d.migrations) ? d.migrations : [];
