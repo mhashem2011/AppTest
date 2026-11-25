@@ -155,9 +155,9 @@
 <script>
 const RATE = 3.75;              // 1 USD = 3.75 SAR
 const TARGET = 90000;           // Neveen Money target (SAR)
-const APP_VERSION = "MH23";
-const STORE = "cashflow.v21";
-// Older keys, newest first. v5-v20 are excluded on purpose: this reset
+const APP_VERSION = "MH24";
+const STORE = "cashflow.v22";
+// Older keys, newest first. v5-v21 are excluded on purpose: this reset
 // (new wallets, plan restarted at November) must load fresh.
 const LEGACY_STORES = ["cashflow.v4","cashflow.v3","cashflow.v2","cashflow.v1"];
 // Calendar position of each month, used to pick "today" and to backfill saves
@@ -187,16 +187,16 @@ function defaultData(){
     // Funds available today, split into named wallets. Each holds an amount in
     // its own currency; the SAR total is the opening balance for November.
     wallets: [
-      {label:"Emirates NBD CC", cur:"SAR", amt:1653.48},
+      {label:"Emirates NBD CC", cur:"SAR", amt:835.39},
       {label:"Inma 000",        cur:"SAR", amt:34.31},
       {label:"Meem CC",         cur:"SAR", amt:492.1},
       {label:"Inma 001",        cur:"SAR", amt:0},
       {label:"IZ CC",           cur:"SAR", amt:29.72},
       {label:"Inma SAVINGS",    cur:"SAR", amt:0},
-      {label:"RL Inma 002",     cur:"SAR", amt:66.03},
-      {label:"STC pay",         cur:"SAR", amt:78.44},
+      {label:"RL Inma 002",     cur:"SAR", amt:56.13},
+      {label:"STC pay",         cur:"SAR", amt:52.86},
       {label:"Mobily Pay",      cur:"SAR", amt:0.05},
-      {label:"Home SAR",        cur:"SAR", amt:865},
+      {label:"Home SAR",        cur:"SAR", amt:1205},
       {label:"Home USD",        cur:"USD", amt:260},
       {label:"SY USD Aya",      cur:"USD", amt:13916},
       {label:"SY USD DD",       cur:"USD", amt:0},
@@ -209,13 +209,12 @@ function defaultData(){
       {key:"Nov-26", y:2026, m:11, name:"November 2026",
                                             inflows:[],
                                             outflows:[{label:"Grocery", sar:200},
-                                                      {label:"Cigs & Iqos", sar:400},
-                                                      {label:"Fuel", sar:100},
-                                                      {label:"Tabby Tamara Misc", sar:350}]},
+                                                      {label:"Fuel", sar:100}]},
       {key:"Dec-26", y:2026, m:12, name:"December 2026",  inflows:salary(),
                                             outflows:[{label:"DAD SY", cur:"USD", amt:350},
                                                       {label:"Nas Tamara Sy Fmly", sar:400},
-                                                      ...standard()]},
+                                                      ...standard(),
+                                                      {label:"Return to Rola", sar:1000}]},
       {key:"Jan-27", y:2027, m:1,  name:"January 2027",   inflows:salary(),
                                             outflows:[{label:"DAD SY", cur:"USD", amt:350},
                                                       {label:"Nas Tamara Sy Fmly", sar:400},
